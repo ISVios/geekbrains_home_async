@@ -44,12 +44,7 @@ class JIM_ACTION(enum.Enum):
     QUIT = "quit"
 
 
-# remake to builder pattern req(timestamp).action(action_param)
-#                                        or
-#                                        .join(join_param)
-#                                        ....(or)
-#                                        .quit(quit_param)
-#                                        # end
+# Think: remake to builder pattern
 def gen_jim_req(action: JIM_ACTION,
                 dumps_kwargs={
                     "indent": 4,
@@ -84,10 +79,11 @@ def parser_jim_answ(jim_bytes: bytes, error_type=None, **kwargs):
     param   kwargs - !!!no use
     """
     enc = chardet.detect(jim_bytes).get("encoding") or "ascii"
-    json_str = jim_bytes.decode(enc).encode("utf-8")
+    json_str = jim_bytes.decode(enc, "replace").encode("utf-8")
     try:
-        dict_ = json.loads(json_str, )
+        dict_: dict = json.loads(json_str)
     except ValueError:
+        # ToDo: add error
         return error_type
     return dict_
 
@@ -109,11 +105,17 @@ def gen_jim_answ(response: int,
     param   dumps_kwargs -
     param   kwargs -
     """
+
+    # ToDo: if response != 100-599
+    #   Way: Ignore
+    #   Way: Def value 500
+
     dict_answ = {
         "response": response,
         "time": int(datetime.now().timestamp()),
         **kwargs
     }
+
     if msg:
         error_group = response // 100
         if error_group in [1, 2]:
@@ -121,5 +123,6 @@ def gen_jim_answ(response: int,
         elif error_group in [3, 4]:
             dict_answ["error"] = msg
         else:
+            # response = 500
             raise ValueError("unknow response")
     return json.dumps(dict_answ, **dumps_kwargs).encode(encoding)
