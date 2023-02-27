@@ -1,6 +1,6 @@
 """
 Unit test
-How Run:  python -m unit_test.jim_test  
+How Run:  python -m unit_test.test_jim  
 """
 
 import json
