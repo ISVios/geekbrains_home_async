@@ -57,30 +57,31 @@ if __name__ == "__main__":
         ))
         socket_.listen(1)
         logger.info(f"Server listen {args.addr}:{args.port}")
+        guest = set()
+        users = set()
         while True:
             # get client
-            client, addr = socket_.accept()
-            logger.debug(f"Find user:\n\t|{addr}")
-            # get client JIM_ACTION.PRESENCE
-            recv_bytes = client.recv(jim.JIM_MAX_LEN_ANSWER)
-            dict_ = jim.parser_jim_answ(recv_bytes)
-            if type(dict_) is dict and dict_.get("action", None):
-                if dict_["action"] == jim.JIM_ACTION.PRESENCE.value:
-                    # Think: there test login
-                    # gen client answer
-                    logger.debug(
-                        f"{addr} | Found {jim.JIM_ACTION.PRESENCE}. Answer.")
-                    client.send(
-                        jim.gen_jim_answ(response=200,
-                                         msg=f"Welcome to Server."))
-                    # Think: maybe here add loop(thread) while client until if not quit or responce(time)
-                    # or add client to acess list
+            anonynim, addr = socket_.accept()
+            logger.debug(f"Find user | {addr}")
+            # get client JIMAction.PRESENCE
+            recv_bytes = anonynim.recv(jim.JIM_MAX_LEN_ANSWER)
+            answer = jim.parser_jim_answ(
+                recv_bytes,
+                callbacks=[lambda x: jim.is_action(x, jim.JIMAction.PRESENCE)])
+            if type(answer) is jim.GoodAnswer:
+                logger.debug(
+                    f"{addr} | get GoodAnswer {answer} with PRESENCE. Answer.")
+                anonynim.send(
+                    jim.gen_jim_answ(response=200, msg="Welcome to Server"))
+                # add anonynim to guest
+                # guest.add(client)
+                # Think: maybe here add loop(thread) while client until if not quit or responce(time)
+            elif type(answer) is jim.BadAnswer:
+                logger.error(f"{addr} | BadAnswer with {answer.error}")
             else:
-                logger.error(
-                    f"{addr} | NO found {jim.JIM_ACTION.PRESENCE} action. Ignore."
-                )
+                logger.error(f"{addr} | Wrong. Ignore.")
 
-            client.close()
+            anonynim.close()
     except KeyboardInterrupt:
         print("Closing")
         socket_.shutdown(socket.SHUT_RDWR)
@@ -89,3 +90,15 @@ if __name__ == "__main__":
         socket_.close()
     finally:
         socket_.close()
+
+# threads
+# def users_logic()
+# recv probe (time)
+# recv quit -> del
+# recv msg -> send to user (if no user found -> msg ignore)
+
+# def guest_logic()
+# send probe (time)
+# recv AUTHENTICATE -> if ok move to users
+# recv msg -> 401
+# recv quit -> del

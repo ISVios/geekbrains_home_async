@@ -54,19 +54,25 @@ if __name__ == "__main__":
             args.port,
         ))
         logger.info(f"client connected to {args.addr}:{args.port}")
-        logger.debug(f"send presence to server")
-        socket_.send(jim.gen_jim_req(jim.JIM_ACTION.PRESENCE))
+        logger.debug("send presence to server")
+        socket_.send(jim.gen_jim_req(jim.JIMAction.PRESENCE))
         recv_bytes = socket_.recv(jim.JIM_MAX_LEN_ANSWER)
-        dict_ = jim.parser_jim_answ(recv_bytes)
-        if type(dict_) is dict:
-            if dict_.get("response", None):
-                if dict_["response"] == 200:
-                    logger.debug("Server OK")
-                elif dict_["response"] == 400:
-                    logger.debug("Server OFF")
-        logger.debug(f"server recv:\n{dict_}")
-        logger.debug(f"send quit to server")
-        socket_.send(jim.gen_jim_req(jim.JIM_ACTION.QUIT))
+        answer = jim.parser_jim_answ(
+            recv_bytes, callbacks=[jim.time_need, jim.response_code_need])
+        if type(answer) is jim.GoodAnswer:
+            logger.debug("received GoodAnswer")
+            answer = answer.answer
+            if jim.response_group(
+                    answer["response"]) == jim.ResponseGroup.Alert:
+                print("SERVER(alert): ", answer["alert"])
+            elif jim.response_group(
+                    answer["response"]) == jim.ResponseGroup.Error:
+                print("SERVER(error): ", answer["error"])
+            else:
+                logger.error(f"Unknow response")
+            socket_.send(jim.gen_jim_req(jim.JIMAction.QUIT))
+        elif type(answer) is jim.BadAnswer:
+            logger.error(f"received BadAnswer {answer.error}")
     except ConnectionRefusedError:
         socket_.close()
 

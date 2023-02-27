@@ -33,18 +33,42 @@ import chardet
 
 JIM_MAX_LEN_ANSWER = 640
 
-# class Answer
-#
-# class GoodAnswer(Answer):
-#     package: dict
-#
-#
-# class BadAnswer(Answer):
-#     bytes_: bytes
-#     error: ValueError
+
+class ResponseGroup(enum.Enum):
+    Alert = "alert"
+    Error = "error"
+    Unknown = None
 
 
-class JIM_ACTION(enum.Enum):
+class Answer:
+    pass
+
+
+class GoodAnswer(Answer):
+    answer: dict
+
+    # Think:  add error -> None
+
+    @property
+    def error(self):
+        return None
+
+    def __init__(self, dict_: dict) -> None:
+        super().__init__()
+        self.answer = dict_
+
+
+class BadAnswer(Answer):
+    bytes_: bytes
+    error: ValueError
+
+    def __init__(self, bytes_: bytes, error: ValueError) -> None:
+        super().__init__()
+        self.bytes_ = bytes_
+        self.error = error
+
+
+class JIMAction(enum.Enum):
     AUTHENTICATE = "authenticate"
     JOIN = "join"
     LEAVE = "leave"
@@ -55,7 +79,7 @@ class JIM_ACTION(enum.Enum):
 
 
 # Think: remake to builder pattern
-def gen_jim_req(action: JIM_ACTION,
+def gen_jim_req(action: JIMAction,
                 dumps_kwargs={
                     "indent": 4,
                     "ensure_ascii": False,
@@ -81,14 +105,12 @@ def gen_jim_req(action: JIM_ACTION,
 
 def parser_jim_answ(jim_bytes: bytes,
                     encoding="utf-8",
-                    callbacks=None,
-                    error_type=None,
-                    **kwargs):  # -> Answer:
+                    callbacks=None):  # -> Answer:
     """
     Parse JIM bytes to string
 
     param   jim_bytes - jim bytes
-    param   kwargs - !!!no use
+    param   callbacks - iter[functions(dic) -> dict]
     """
     enc = chardet.detect(jim_bytes).get("encoding") or "ascii"
     json_str = jim_bytes.decode(enc, "replace").encode(encoding)
@@ -96,36 +118,71 @@ def parser_jim_answ(jim_bytes: bytes,
     try:
         dict_: dict = json.loads(json_str)
         if not callbacks is None:
-            if type(callbacks) is "function":
+            if callable(callbacks):
                 dict_ = callbacks(dict_)
             else:
                 for fn_ in callbacks:
                     dict_ = fn_(dict_)
     except ValueError as err:
-        # return BadAnswer(jim_bytes, err)
-        return error_type
-    # return GoodAnswer(dict_)
-    return dict_
+        return BadAnswer(jim_bytes, err)
+    return GoodAnswer(dict_)
 
 
-def correct_action(dict_: dict, msg="Packet have wrong action"):
-    if not ("action" is dict_
-            or dict_["action"] in JIM_ACTION._value2member_map_):
-        raise ValueError(msg)
-    return dict_
+def correct_action(dict_: dict, error_msg="Packet have wrong action"):
+    return need_field_value(dict_,
+                            "action",
+                            JIMAction._value2member_map_,
+                            many=True)
 
 
-def timestamp_need(dict_: dict, error_msg="Packet no have timestamp"):
+def is_response(dict_: dict, response: int, error_msg=None):
+    return need_field_value(dict_, "response", response)
+
+
+def is_action(dict_: dict, action: JIMAction, error_msg=None):
+    # correct_action(dict_)
+    return need_field_value(dict_, "action", action.value)
+
+
+def response_group(response: int):
+    msg_group = response // 100
+    if msg_group in [1, 2]:
+        return ResponseGroup.Alert
+    elif msg_group in [3, 4, 5]:
+        return ResponseGroup.Error
+
+    return ResponseGroup.Unknown
+
+
+def time_need(dict_: dict, error_msg="Packet no have timestamp"):
     return need_field(dict_, "time", error_msg)
 
 
-def response_code_need(dict_: dict, error_msg="Packet no have response_code"):
+def response_need(dict_: dict, error_msg="Packet no have response_code"):
     return need_field(dict_, "response", error_msg)
 
 
-def need_field(dict_: dict, field: str, error_msg: str = ""):
+def need_field(dict_: dict, field: str, error_msg: str = "No found field {}"):
+    # Think: about error_msg format -> lambda dict, feed -> str
     if not field in dict_:
         raise ValueError(error_msg)
+    return dict_
+
+
+def need_field_value(dict_: dict,
+                     field: str,
+                     value,
+                     many=False,
+                     error_msg: str = "field no eq value"):
+    need_field(dict_, field)
+
+    if many:
+        if not dict_[field] in value:
+            raise ValueError(error_msg)
+    else:
+        if dict_[field] != value:
+            raise ValueError(error_msg)
+
     return dict_
 
 
@@ -147,21 +204,17 @@ def gen_jim_answ(response: int,
     param   kwargs -
     """
 
-    # ToDo: if response != 100-599
-    #   Way: Ignore
-    #   Way: Def value 500
-
     dict_answ = {
         "response": response,
         "time": int(datetime.now().timestamp()),
         **kwargs
     }
 
-    error_group = response // 100
-    if error_group in [1, 2]:
+    msg_group = response_group(response)
+    if msg_group == ResponseGroup.Alert:
         if msg:
             dict_answ["alert"] = msg
-    elif error_group in [3, 4, 5]:
+    elif msg_group == ResponseGroup.Error:
         if msg:
             dict_answ["error"] = msg
     else:
