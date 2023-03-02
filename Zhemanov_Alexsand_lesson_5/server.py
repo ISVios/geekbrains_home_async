@@ -23,12 +23,12 @@ SERVER
 
 import argparse
 import logging
+import log.server_log_config
 import socket
 
 import jim
 
-logger = logging.getLogger("server.py")
-logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+logger = logging.getLogger("server")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='JIM server.')
@@ -47,6 +47,7 @@ if __name__ == "__main__":
                         default="0.0.0.0",
                         help="IP-addres to listen. (default: 0.0.0.0)")
 
+    logger.debug("parse input args")
     args = parser.parse_args()
 
     socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -83,12 +84,16 @@ if __name__ == "__main__":
 
             anonynim.close()
     except KeyboardInterrupt:
-        print("Closing")
+        logger.warning("Force stop socket")
         socket_.shutdown(socket.SHUT_RDWR)
         socket_.close()
     except ConnectionRefusedError:
+        logger.warn(f"Can`t make connection with client.")
         socket_.close()
+    except OSError:
+        logger.critical(f"Port {args.port} already used.")
     finally:
+        logger.debug("Server stop")
         socket_.close()
 
 # threads
