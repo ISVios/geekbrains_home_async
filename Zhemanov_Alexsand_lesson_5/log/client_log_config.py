@@ -16,7 +16,7 @@ CLIENT
 import logging
 
 LOGGER_TERMINAL_LEVEL = logging.DEBUG
-LOGGER_FILE_LEVEL = logging.ERROR
+LOGGER_FILE_LEVEL = logging.DEBUG
 
 #
 # open all log
