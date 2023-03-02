@@ -31,6 +31,8 @@ from datetime import datetime
 
 import chardet
 
+import func_decorator as decorator
+
 JIM_MAX_LEN_ANSWER = 640
 
 
@@ -79,6 +81,7 @@ class JIMAction(enum.Enum):
 
 
 # Think: remake to builder pattern
+@decorator.log
 def gen_jim_req(action: JIMAction,
                 dumps_kwargs={
                     "indent": 4,
@@ -103,6 +106,7 @@ def gen_jim_req(action: JIMAction,
     return json.dumps(dict_req, **dumps_kwargs).encode(encoding)
 
 
+@decorator.log
 def parser_jim_answ(jim_bytes: bytes,
                     encoding="utf-8",
                     callbacks=None):  # -> Answer:
@@ -128,6 +132,7 @@ def parser_jim_answ(jim_bytes: bytes,
     return GoodAnswer(dict_)
 
 
+@decorator.log
 def correct_action(dict_: dict, error_msg="Packet have wrong action"):
     return need_field_value(dict_,
                             "action",
@@ -135,15 +140,18 @@ def correct_action(dict_: dict, error_msg="Packet have wrong action"):
                             many=True)
 
 
+@decorator.log
 def is_response(dict_: dict, response: int, error_msg=None):
     return need_field_value(dict_, "response", response)
 
 
+@decorator.log
 def is_action(dict_: dict, action: JIMAction, error_msg=None):
     # correct_action(dict_)
     return need_field_value(dict_, "action", action.value)
 
 
+@decorator.log
 def response_group(response: int):
     msg_group = response // 100
     if msg_group in [1, 2]:
@@ -154,14 +162,17 @@ def response_group(response: int):
     return ResponseGroup.Unknown
 
 
+@decorator.log
 def time_need(dict_: dict, error_msg="Packet no have timestamp"):
     return need_field(dict_, "time", error_msg)
 
 
+@decorator.log
 def response_need(dict_: dict, error_msg="Packet no have response_code"):
     return need_field(dict_, "response", error_msg)
 
 
+@decorator.log
 def need_field(dict_: dict, field: str, error_msg: str = "No found field {}"):
     # Think: about error_msg format -> lambda dict, feed -> str
     if not field in dict_:
@@ -169,6 +180,7 @@ def need_field(dict_: dict, field: str, error_msg: str = "No found field {}"):
     return dict_
 
 
+@decorator.log
 def need_field_value(dict_: dict,
                      field: str,
                      value,
@@ -186,6 +198,7 @@ def need_field_value(dict_: dict,
     return dict_
 
 
+@decorator.log
 def gen_jim_answ(response: int,
                  msg=None,
                  encoding="utf-8",

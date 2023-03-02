@@ -18,7 +18,6 @@ import logging
 LOGGER_TERMINAL_LEVEL = logging.DEBUG
 LOGGER_FILE_LEVEL = logging.ERROR
 
-#
 # open all log
 logging.root.setLevel(logging.NOTSET)
 logger = logging.getLogger("client")

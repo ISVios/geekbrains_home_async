@@ -23,10 +23,10 @@ SERVER
 
 import argparse
 import logging
-import log.server_log_config
 import socket
 
 import jim
+import log.server_log_config
 
 logger = logging.getLogger("server")
 
