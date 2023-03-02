@@ -1,1 +1,47 @@
-<2023-03-02 19:44:07,377> <ERROR> <server> <('127.0.0.1', 47716) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:46:45,924> <DEBUG> <server> <parse input args>
+<2023-03-02 19:46:45,924> <INFO> <server> <Server listen 0.0.0.0:7777>
+<2023-03-02 19:46:49,389> <DEBUG> <server> <Find user | ('127.0.0.1', 34388)>
+<2023-03-02 19:46:49,391> <DEBUG> <server> <('127.0.0.1', 34388) | get GoodAnswer <jim.GoodAnswer object at 0x7f6358c55030> with PRESENCE. Answer.>
+<2023-03-02 19:46:50,728> <DEBUG> <server> <Find user | ('127.0.0.1', 34390)>
+<2023-03-02 19:46:50,730> <DEBUG> <server> <('127.0.0.1', 34390) | get GoodAnswer <jim.GoodAnswer object at 0x7f6358c554b0> with PRESENCE. Answer.>
+<2023-03-02 19:46:51,814> <DEBUG> <server> <Find user | ('127.0.0.1', 34398)>
+<2023-03-02 19:46:51,815> <DEBUG> <server> <('127.0.0.1', 34398) | get GoodAnswer <jim.GoodAnswer object at 0x7f6358c55900> with PRESENCE. Answer.>
+<2023-03-02 19:46:53,276> <DEBUG> <server> <Find user | ('127.0.0.1', 34404)>
+<2023-03-02 19:46:53,277> <ERROR> <server> <('127.0.0.1', 34404) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:46:59,334> <WARNING> <server> <Force stop socket>
+<2023-03-02 19:46:59,335> <DEBUG> <server> <Server stop>
+<2023-03-02 19:51:00,473> <DEBUG> <server> <parse input args>
+<2023-03-02 19:51:00,473> <INFO> <server> <Server listen 0.0.0.0:7777>
+<2023-03-02 19:51:05,624> <DEBUG> <server> <Find user | ('127.0.0.1', 48578)>
+<2023-03-02 19:51:05,625> <DEBUG> <server> <Call function 'parser_jim_answ' from '<module>' with (b'GET / HTTP/1.1\r\nHost: 0.0.0.0:7777\r\nUser-Agent: curl/7.88.1\r\nAccept: */*\r\n\r\n',) and {'callbacks': [<function <lambda> at 0x7f97768dadd0>]}>
+<2023-03-02 19:51:05,625> <ERROR> <server> <('127.0.0.1', 48578) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:51:06,246> <DEBUG> <server> <Find user | ('127.0.0.1', 48584)>
+<2023-03-02 19:51:06,248> <DEBUG> <server> <Call function 'parser_jim_answ' from '<module>' with (b'GET / HTTP/1.1\r\nHost: 0.0.0.0:7777\r\nUser-Agent: curl/7.88.1\r\nAccept: */*\r\n\r\n',) and {'callbacks': [<function <lambda> at 0x7f977691fa30>]}>
+<2023-03-02 19:51:06,249> <ERROR> <server> <('127.0.0.1', 48584) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:51:06,817> <DEBUG> <server> <Find user | ('127.0.0.1', 48596)>
+<2023-03-02 19:51:06,819> <DEBUG> <server> <Call function 'parser_jim_answ' from '<module>' with (b'GET / HTTP/1.1\r\nHost: 0.0.0.0:7777\r\nUser-Agent: curl/7.88.1\r\nAccept: */*\r\n\r\n',) and {'callbacks': [<function <lambda> at 0x7f977691fac0>]}>
+<2023-03-02 19:51:06,820> <ERROR> <server> <('127.0.0.1', 48596) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:51:08,268> <DEBUG> <server> <Find user | ('127.0.0.1', 48598)>
+<2023-03-02 19:51:08,269> <DEBUG> <server> <Call function 'need_field' from 'need_field_value' with ({'action': 'presence', 'time': 1677775868}, 'action') and {}>
+<2023-03-02 19:51:08,270> <DEBUG> <server> <Call function 'need_field_value' from 'is_action' with ({'action': 'presence', 'time': 1677775868}, 'action', 'presence') and {}>
+<2023-03-02 19:51:08,270> <DEBUG> <server> <Call function 'is_action' from '<lambda>' with ({'action': 'presence', 'time': 1677775868}, <JIMAction.PRESENCE: 'presence'>) and {}>
+<2023-03-02 19:51:08,270> <DEBUG> <server> <Call function 'parser_jim_answ' from '<module>' with (b'{\n    "action": "presence",\n    "time": 1677775868\n}',) and {'callbacks': [<function <lambda> at 0x7f977691fb50>]}>
+<2023-03-02 19:51:08,270> <DEBUG> <server> <('127.0.0.1', 48598) | get GoodAnswer <jim.GoodAnswer object at 0x7f9776914dc0> with PRESENCE. Answer.>
+<2023-03-02 19:51:08,270> <DEBUG> <server> <Call function 'response_group' from 'gen_jim_answ' with (200,) and {}>
+<2023-03-02 19:51:08,270> <DEBUG> <server> <Call function 'gen_jim_answ' from '<module>' with () and {'response': 200, 'msg': 'Welcome to Server'}>
+<2023-03-02 19:51:10,109> <DEBUG> <server> <Find user | ('127.0.0.1', 48602)>
+<2023-03-02 19:51:10,110> <DEBUG> <server> <Call function 'need_field' from 'need_field_value' with ({'action': 'presence', 'time': 1677775870}, 'action') and {}>
+<2023-03-02 19:51:10,110> <DEBUG> <server> <Call function 'need_field_value' from 'is_action' with ({'action': 'presence', 'time': 1677775870}, 'action', 'presence') and {}>
+<2023-03-02 19:51:10,110> <DEBUG> <server> <Call function 'is_action' from '<lambda>' with ({'action': 'presence', 'time': 1677775870}, <JIMAction.PRESENCE: 'presence'>) and {}>
+<2023-03-02 19:51:10,111> <DEBUG> <server> <Call function 'parser_jim_answ' from '<module>' with (b'{\n    "action": "presence",\n    "time": 1677775870\n}',) and {'callbacks': [<function <lambda> at 0x7f977691fd90>]}>
+<2023-03-02 19:51:10,111> <DEBUG> <server> <('127.0.0.1', 48602) | get GoodAnswer <jim.GoodAnswer object at 0x7f9776915810> with PRESENCE. Answer.>
+<2023-03-02 19:51:10,111> <DEBUG> <server> <Call function 'response_group' from 'gen_jim_answ' with (200,) and {}>
+<2023-03-02 19:51:10,111> <DEBUG> <server> <Call function 'gen_jim_answ' from '<module>' with () and {'response': 200, 'msg': 'Welcome to Server'}>
+<2023-03-02 19:51:11,158> <DEBUG> <server> <Find user | ('127.0.0.1', 48606)>
+<2023-03-02 19:51:11,159> <DEBUG> <server> <Call function 'need_field' from 'need_field_value' with ({'action': 'presence', 'time': 1677775871}, 'action') and {}>
+<2023-03-02 19:51:11,160> <DEBUG> <server> <Call function 'need_field_value' from 'is_action' with ({'action': 'presence', 'time': 1677775871}, 'action', 'presence') and {}>
+<2023-03-02 19:51:11,160> <DEBUG> <server> <Call function 'is_action' from '<lambda>' with ({'action': 'presence', 'time': 1677775871}, <JIMAction.PRESENCE: 'presence'>) and {}>
+<2023-03-02 19:51:11,160> <DEBUG> <server> <Call function 'parser_jim_answ' from '<module>' with (b'{\n    "action": "presence",\n    "time": 1677775871\n}',) and {'callbacks': [<function <lambda> at 0x7f977693c040>]}>
+<2023-03-02 19:51:11,160> <DEBUG> <server> <('127.0.0.1', 48606) | get GoodAnswer <jim.GoodAnswer object at 0x7f9776915c60> with PRESENCE. Answer.>
+<2023-03-02 19:51:11,160> <DEBUG> <server> <Call function 'response_group' from 'gen_jim_answ' with (200,) and {}>
+<2023-03-02 19:51:11,160> <DEBUG> <server> <Call function 'gen_jim_answ' from '<module>' with () and {'response': 200, 'msg': 'Welcome to Server'}>
