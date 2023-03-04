@@ -13,7 +13,12 @@ CLIENT
 Журналирование обработки исключений try/except. Вместо функции print() использовать журналирование и обеспечить вывод служебных сообщений в лог-файл;
 Журналирование функций, исполняемых на серверной и клиентской сторонах при работе мессенджера.
 """
+import os
 import logging
+
+LOGGER_FILE_NAME = "client.log"
+LOGGER_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "..", LOGGER_FILE_NAME)
 
 LOGGER_TERMINAL_LEVEL = logging.DEBUG
 LOGGER_FILE_LEVEL = logging.DEBUG
@@ -27,7 +32,7 @@ logger = logging.getLogger("client")
 logger_format = logging.Formatter(
     "<%(asctime)s> <%(levelname)s> <%(name)s> <%(message)s>")
 # file
-logger_file = logging.FileHandler("client.log", encoding="utf-8")
+logger_file = logging.FileHandler(LOGGER_FILE_PATH, encoding="utf-8")
 logger_file.setLevel(LOGGER_FILE_LEVEL)
 # terminal
 logger_terminal = logging.StreamHandler()

@@ -13,8 +13,13 @@ SERVER
 Журналирование обработки исключений try/except. Вместо функции print() использовать журналирование и обеспечить вывод служебных сообщений в лог-файл;
 Журналирование функций, исполняемых на серверной и клиентской сторонах при работе мессенджера.
 """
+import os
 import logging.handlers
 import logging
+
+LOGGER_FILE_NAME = "server.log"
+LOGGER_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "..", LOGGER_FILE_NAME)
 
 LOGGER_TERMINAL_LEVEL = logging.DEBUG
 LOGGER_FILE_LEVEL = logging.DEBUG
@@ -27,7 +32,7 @@ logger = logging.getLogger("server")
 logger_format = logging.Formatter(
     "<%(asctime)s> <%(levelname)s> <%(name)s> <%(message)s>")
 # file
-logger_file = logging.handlers.TimedRotatingFileHandler("server.log",
+logger_file = logging.handlers.TimedRotatingFileHandler(LOGGER_FILE_PATH,
                                                         "D",
                                                         1,
                                                         encoding="utf-8")
