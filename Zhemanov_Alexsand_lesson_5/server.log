@@ -1,0 +1,50 @@
+<2023-03-02 19:15:14,456> <ERROR> <server> <('127.0.0.1', 38814) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:15:15,151> <ERROR> <server> <('127.0.0.1', 38828) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:15:15,811> <ERROR> <server> <('127.0.0.1', 38836) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:15:16,431> <ERROR> <server> <('127.0.0.1', 38852) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:16:39,683> <DEBUG> <server> <parse input args>
+<2023-03-02 19:16:39,683> <INFO> <server> <Server listen 0.0.0.0:7777>
+<2023-03-02 19:16:48,956> <DEBUG> <server> <Find user | ('127.0.0.1', 51782)>
+<2023-03-02 19:16:48,957> <DEBUG> <server> <('127.0.0.1', 51782) | get GoodAnswer <jim.GoodAnswer object at 0x7f92bb9207f0> with PRESENCE. Answer.>
+<2023-03-02 19:16:50,304> <DEBUG> <server> <Find user | ('127.0.0.1', 51788)>
+<2023-03-02 19:16:50,304> <DEBUG> <server> <('127.0.0.1', 51788) | get GoodAnswer <jim.GoodAnswer object at 0x7f92bb920850> with PRESENCE. Answer.>
+<2023-03-02 19:16:51,509> <DEBUG> <server> <Find user | ('127.0.0.1', 51790)>
+<2023-03-02 19:16:51,509> <DEBUG> <server> <('127.0.0.1', 51790) | get GoodAnswer <jim.GoodAnswer object at 0x7f92bb9207f0> with PRESENCE. Answer.>
+<2023-03-02 19:16:54,564> <DEBUG> <server> <Find user | ('127.0.0.1', 53294)>
+<2023-03-02 19:16:54,565> <ERROR> <server> <('127.0.0.1', 53294) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:16:55,628> <DEBUG> <server> <Find user | ('127.0.0.1', 53298)>
+<2023-03-02 19:16:55,629> <ERROR> <server> <('127.0.0.1', 53298) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:16:56,328> <DEBUG> <server> <Find user | ('127.0.0.1', 53312)>
+<2023-03-02 19:16:56,329> <ERROR> <server> <('127.0.0.1', 53312) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:16:56,976> <DEBUG> <server> <Find user | ('127.0.0.1', 53328)>
+<2023-03-02 19:16:56,977> <ERROR> <server> <('127.0.0.1', 53328) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:17:04,708> <WARNING> <server> <Force stop socket>
+<2023-03-02 19:17:04,709> <DEBUG> <server> <Server stop>
+<2023-03-02 19:18:12,895> <DEBUG> <server> <parse input args>
+<2023-03-02 19:18:12,895> <INFO> <server> <Server listen 0.0.0.0:7777>
+<2023-03-02 19:18:16,239> <DEBUG> <server> <Find user | ('127.0.0.1', 49368)>
+<2023-03-02 19:18:16,239> <ERROR> <server> <('127.0.0.1', 49368) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:18:17,000> <DEBUG> <server> <Find user | ('127.0.0.1', 49382)>
+<2023-03-02 19:18:17,001> <ERROR> <server> <('127.0.0.1', 49382) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:18:18,599> <DEBUG> <server> <Find user | ('127.0.0.1', 49392)>
+<2023-03-02 19:18:18,599> <DEBUG> <server> <('127.0.0.1', 49392) | get GoodAnswer <jim.GoodAnswer object at 0x7f4405660880> with PRESENCE. Answer.>
+<2023-03-02 19:18:19,543> <DEBUG> <server> <Find user | ('127.0.0.1', 49406)>
+<2023-03-02 19:18:19,544> <DEBUG> <server> <('127.0.0.1', 49406) | get GoodAnswer <jim.GoodAnswer object at 0x7f4405660910> with PRESENCE. Answer.>
+<2023-03-02 19:18:20,465> <DEBUG> <server> <Find user | ('127.0.0.1', 49408)>
+<2023-03-02 19:18:20,466> <DEBUG> <server> <('127.0.0.1', 49408) | get GoodAnswer <jim.GoodAnswer object at 0x7f4405660880> with PRESENCE. Answer.>
+<2023-03-02 19:38:42,374> <DEBUG> <server> <Find user | ('127.0.0.1', 56404)>
+<2023-03-02 19:38:42,375> <DEBUG> <server> <('127.0.0.1', 56404) | get GoodAnswer <jim.GoodAnswer object at 0x7f4405660910> with PRESENCE. Answer.>
+<2023-03-02 19:38:44,038> <DEBUG> <server> <Find user | ('127.0.0.1', 52524)>
+<2023-03-02 19:38:44,039> <ERROR> <server> <('127.0.0.1', 52524) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:38:45,029> <DEBUG> <server> <Find user | ('127.0.0.1', 52534)>
+<2023-03-02 19:38:45,031> <ERROR> <server> <('127.0.0.1', 52534) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:38:45,767> <DEBUG> <server> <Find user | ('127.0.0.1', 52548)>
+<2023-03-02 19:38:45,767> <ERROR> <server> <('127.0.0.1', 52548) | BadAnswer with Expecting value: line 1 column 1 (char 0)>
+<2023-03-02 19:38:48,109> <DEBUG> <server> <Find user | ('127.0.0.1', 52554)>
+<2023-03-02 19:38:48,109> <DEBUG> <server> <('127.0.0.1', 52554) | get GoodAnswer <jim.GoodAnswer object at 0x7f4405661450> with PRESENCE. Answer.>
+<2023-03-02 19:38:48,804> <DEBUG> <server> <Find user | ('127.0.0.1', 52570)>
+<2023-03-02 19:38:48,804> <DEBUG> <server> <('127.0.0.1', 52570) | get GoodAnswer <jim.GoodAnswer object at 0x7f44056618d0> with PRESENCE. Answer.>
+<2023-03-02 19:38:49,581> <DEBUG> <server> <Find user | ('127.0.0.1', 52576)>
+<2023-03-02 19:38:49,581> <DEBUG> <server> <('127.0.0.1', 52576) | get GoodAnswer <jim.GoodAnswer object at 0x7f4405661450> with PRESENCE. Answer.>
+<2023-03-02 19:38:53,514> <WARNING> <server> <Force stop socket>
+<2023-03-02 19:38:53,515> <DEBUG> <server> <Server stop>

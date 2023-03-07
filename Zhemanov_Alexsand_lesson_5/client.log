@@ -1,0 +1,84 @@
+<2023-03-02 19:14:32,605> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:14:32,605> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:14:34,967> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:14:34,968> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:15:06,582> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:15:06,583> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:15:07,861> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:15:07,862> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:15:36,337> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:15:36,337> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:15:37,327> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:15:37,327> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:15:38,462> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:15:38,463> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:16:48,956> <DEBUG> <client> <parse input args>
+<2023-03-02 19:16:48,956> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:16:48,956> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:16:48,957> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:16:48,957> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:16:48,957> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:16:48,957> <DEBUG> <client> <close socket>
+<2023-03-02 19:16:50,303> <DEBUG> <client> <parse input args>
+<2023-03-02 19:16:50,304> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:16:50,304> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:16:50,304> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:16:50,305> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:16:50,305> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:16:50,305> <DEBUG> <client> <close socket>
+<2023-03-02 19:16:51,508> <DEBUG> <client> <parse input args>
+<2023-03-02 19:16:51,509> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:16:51,509> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:16:51,509> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:16:51,510> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:16:51,510> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:16:51,510> <DEBUG> <client> <close socket>
+<2023-03-02 19:18:18,599> <DEBUG> <client> <parse input args>
+<2023-03-02 19:18:18,599> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:18:18,599> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:18:18,600> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:18:18,600> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:18:18,600> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:18:18,600> <DEBUG> <client> <close socket>
+<2023-03-02 19:18:19,543> <DEBUG> <client> <parse input args>
+<2023-03-02 19:18:19,543> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:18:19,543> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:18:19,544> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:18:19,544> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:18:19,544> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:18:19,544> <DEBUG> <client> <close socket>
+<2023-03-02 19:18:20,465> <DEBUG> <client> <parse input args>
+<2023-03-02 19:18:20,465> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:18:20,465> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:18:20,466> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:18:20,466> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:18:20,466> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:18:20,466> <DEBUG> <client> <close socket>
+<2023-03-02 19:38:42,374> <DEBUG> <client> <parse input args>
+<2023-03-02 19:38:42,374> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:38:42,374> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:38:42,375> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:38:42,375> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:38:42,375> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:38:42,375> <DEBUG> <client> <close socket>
+<2023-03-02 19:38:48,108> <DEBUG> <client> <parse input args>
+<2023-03-02 19:38:48,109> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:38:48,109> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:38:48,109> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:38:48,110> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:38:48,110> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:38:48,110> <DEBUG> <client> <close socket>
+<2023-03-02 19:38:48,803> <DEBUG> <client> <parse input args>
+<2023-03-02 19:38:48,804> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:38:48,804> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:38:48,804> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:38:48,804> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:38:48,805> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:38:48,805> <DEBUG> <client> <close socket>
+<2023-03-02 19:38:49,580> <DEBUG> <client> <parse input args>
+<2023-03-02 19:38:49,581> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:38:49,581> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:38:49,582> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:38:49,582> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:38:49,582> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:38:49,582> <DEBUG> <client> <close socket>
