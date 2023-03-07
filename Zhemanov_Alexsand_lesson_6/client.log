@@ -1,0 +1,66 @@
+<2023-03-02 19:46:49,389> <DEBUG> <client> <parse input args>
+<2023-03-02 19:46:49,389> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:46:49,389> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:46:49,393> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:46:49,393> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:46:49,393> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:46:49,394> <DEBUG> <client> <close socket>
+<2023-03-02 19:46:50,728> <DEBUG> <client> <parse input args>
+<2023-03-02 19:46:50,728> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:46:50,728> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:46:50,731> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:46:50,732> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:46:50,732> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:46:50,732> <DEBUG> <client> <close socket>
+<2023-03-02 19:46:51,813> <DEBUG> <client> <parse input args>
+<2023-03-02 19:46:51,814> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:46:51,814> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:46:51,817> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:46:51,817> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:46:51,817> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:46:51,818> <DEBUG> <client> <close socket>
+<2023-03-02 19:51:08,268> <DEBUG> <client> <parse input args>
+<2023-03-02 19:51:08,268> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:51:08,268> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:51:08,269> <DEBUG> <client> <Call function 'gen_jim_req' from '<module>' with (<JIMAction.PRESENCE: 'presence'>,) and {}>
+<2023-03-02 19:51:08,271> <DEBUG> <client> <Call function 'need_field' from 'time_need' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775868}, 'time', 'Packet no have timestamp') and {}>
+<2023-03-02 19:51:08,272> <DEBUG> <client> <Call function 'time_need' from 'parser_jim_answ' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775868},) and {}>
+<2023-03-02 19:51:08,272> <DEBUG> <client> <Call function 'need_field' from 'response_need' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775868}, 'response', 'Packet no have response_code') and {}>
+<2023-03-02 19:51:08,272> <DEBUG> <client> <Call function 'response_need' from 'parser_jim_answ' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775868},) and {}>
+<2023-03-02 19:51:08,272> <DEBUG> <client> <Call function 'parser_jim_answ' from '<module>' with (b'{\n    "alert": "Welcome to Server",\n    "response": 200,\n    "time": 1677775868\n}',) and {'callbacks': [<function log.<locals>.decor at 0x7effef8536d0>, <function log.<locals>.decor at 0x7effef8537f0>]}>
+<2023-03-02 19:51:08,272> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:51:08,273> <DEBUG> <client> <Call function 'response_group' from '<module>' with (200,) and {}>
+<2023-03-02 19:51:08,273> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:51:08,273> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:51:08,273> <DEBUG> <client> <Call function 'gen_jim_req' from '<module>' with (<JIMAction.QUIT: 'quit'>,) and {}>
+<2023-03-02 19:51:08,273> <DEBUG> <client> <close socket>
+<2023-03-02 19:51:10,109> <DEBUG> <client> <parse input args>
+<2023-03-02 19:51:10,109> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:51:10,109> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:51:10,109> <DEBUG> <client> <Call function 'gen_jim_req' from '<module>' with (<JIMAction.PRESENCE: 'presence'>,) and {}>
+<2023-03-02 19:51:10,112> <DEBUG> <client> <Call function 'need_field' from 'time_need' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775870}, 'time', 'Packet no have timestamp') and {}>
+<2023-03-02 19:51:10,112> <DEBUG> <client> <Call function 'time_need' from 'parser_jim_answ' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775870},) and {}>
+<2023-03-02 19:51:10,112> <DEBUG> <client> <Call function 'need_field' from 'response_need' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775870}, 'response', 'Packet no have response_code') and {}>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <Call function 'response_need' from 'parser_jim_answ' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775870},) and {}>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <Call function 'parser_jim_answ' from '<module>' with (b'{\n    "alert": "Welcome to Server",\n    "response": 200,\n    "time": 1677775870\n}',) and {'callbacks': [<function log.<locals>.decor at 0x7f64531976d0>, <function log.<locals>.decor at 0x7f64531977f0>]}>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <Call function 'response_group' from '<module>' with (200,) and {}>
+<2023-03-02 19:51:10,113> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <Call function 'gen_jim_req' from '<module>' with (<JIMAction.QUIT: 'quit'>,) and {}>
+<2023-03-02 19:51:10,113> <DEBUG> <client> <close socket>
+<2023-03-02 19:51:11,158> <DEBUG> <client> <parse input args>
+<2023-03-02 19:51:11,158> <INFO> <client> <client connected to 0.0.0.0:7777>
+<2023-03-02 19:51:11,158> <DEBUG> <client> <send presence to server>
+<2023-03-02 19:51:11,159> <DEBUG> <client> <Call function 'gen_jim_req' from '<module>' with (<JIMAction.PRESENCE: 'presence'>,) and {}>
+<2023-03-02 19:51:11,161> <DEBUG> <client> <Call function 'need_field' from 'time_need' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775871}, 'time', 'Packet no have timestamp') and {}>
+<2023-03-02 19:51:11,161> <DEBUG> <client> <Call function 'time_need' from 'parser_jim_answ' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775871},) and {}>
+<2023-03-02 19:51:11,161> <DEBUG> <client> <Call function 'need_field' from 'response_need' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775871}, 'response', 'Packet no have response_code') and {}>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <Call function 'response_need' from 'parser_jim_answ' with ({'alert': 'Welcome to Server', 'response': 200, 'time': 1677775871},) and {}>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <Call function 'parser_jim_answ' from '<module>' with (b'{\n    "alert": "Welcome to Server",\n    "response": 200,\n    "time": 1677775871\n}',) and {'callbacks': [<function log.<locals>.decor at 0x7fcca049b6d0>, <function log.<locals>.decor at 0x7fcca049b7f0>]}>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <received GoodAnswer>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <Call function 'response_group' from '<module>' with (200,) and {}>
+<2023-03-02 19:51:11,162> <INFO> <client> <SERVER(alert): Welcome to Server>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <send quit request to server>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <Call function 'gen_jim_req' from '<module>' with (<JIMAction.QUIT: 'quit'>,) and {}>
+<2023-03-02 19:51:11,162> <DEBUG> <client> <close socket>
