@@ -1,32 +1,32 @@
 #!/usr/bin/env python
 """
 CLIENT
-1. Реализовать простое клиент-серверное взаимодействие по протоколу JIM (JSON instant messaging):
-    клиент отправляет запрос серверу;
-    сервер отвечает соответствующим кодом результата.
-    Клиент и сервер должны быть реализованы в виде отдельных скриптов, содержащих соответствующие функции.
-    **** Функции клиента: 
-        сформировать presence-сообщение; 
-        отправить сообщение серверу; 
-        получить ответ сервера; 
-        разобрать сообщение сервера; 
-        параметры командной строки скрипта client.py <addr> [<port>]: 
-            addr — ip-адрес сервера; 
-            port — tcp-порт на сервере, по умолчанию 7777. 
-    Функции сервера: принимает сообщение клиента; 
-        формирует ответ клиенту; 
-        отправляет ответ клиенту; 
-        имеет параметры командной строки: -p <port> — TCP-порт для работы (по умолчанию использует 7777);
-        -a <addr> — IP-адрес для прослушивания (по умолчанию слушает все доступные адреса).
+1. Реализовать обработку нескольких клиентов на сервере,
+        используя функцию select.
+    Клиенты должны общаться в «общем чате»: 
+        - каждое сообщение участника отправляется всем, подключенным к серверу.
+** 2. Реализовать функции отправки/приема данных на стороне клиента.
+    Чтобы упростить разработку на данном этапе,
+        пусть клиентское приложение будет либо только принимать,
+        либо только отправлять сообщения в общий чат.
+    Эти функции надо реализовать в рамках отдельных скриптов.
 """
 import argparse
 import logging
 import socket
+from datetime import datetime
 
 import jim
 import log.client_log_config
 
 logger = logging.getLogger("client")
+
+
+def send_ans_wait(bytes_: bytes, socket_: socket.socket) -> jim.Answer:
+    socket_.send(bytes_)
+    recv = socket_.recv(jim.JIM_MAX_LEN_ANSWER)
+    return jim.parser_jim_answ(recv, callbacks=[jim.time_need])
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='JIM server.')
@@ -56,25 +56,88 @@ if __name__ == "__main__":
         ))
         logger.info(f"client connected to {args.addr}:{args.port}")
         logger.debug("send presence to server")
-        socket_.send(jim.gen_jim_req(jim.JIMAction.PRESENCE))
-        recv_bytes = socket_.recv(jim.JIM_MAX_LEN_ANSWER)
-        answer = jim.parser_jim_answ(
-            recv_bytes, callbacks=[jim.time_need, jim.response_need])
-        if type(answer) is jim.GoodAnswer:
-            logger.debug("received GoodAnswer")
-            answer = answer.answer
-            if jim.response_group(
-                    answer["response"]) == jim.ResponseGroup.Alert:
-                logger.info(f"SERVER(alert): {answer['alert']}")
-            elif jim.response_group(
-                    answer["response"]) == jim.ResponseGroup.Error:
-                logger.info(f"SERVER(error): {answer['error']}")
+        res = send_ans_wait(jim.gen_jim_req(jim.JIMAction.PRESENCE), socket_)
+
+        if type(res) is jim.GoodAnswer:
+            if res.answer["response"] == 200:
+                logger.debug(f"Server answer on PRESENCE {res.answer}")
             else:
-                logger.error(f"Unknow response")
-            logger.debug(f"send quit request to server")
-            socket_.send(jim.gen_jim_req(jim.JIMAction.QUIT))
-        elif type(answer) is jim.BadAnswer:
-            logger.error(f"received BadAnswer from server.")
+                logger.error(res.answer["error"])
+                exit(-1)
+
+            user_name = input("Input user name: ")
+
+            if user_name:
+                user_dict = {"account_name": user_name}
+                res = send_ans_wait(
+                    jim.gen_jim_req(jim.JIMAction.AUTHENTICATE,
+                                    user=user_dict), socket_)
+                if type(res) is jim.BadAnswer:
+                    exit(-1)
+                elif type(res) is jim.GoodAnswer and "error" in res.answer:
+                    logger.error(f"{res.answer.get('error')}")
+                    exit(-1)
+
+            command = "-1"
+            while True:
+                command = input(
+                    "\n1)send and recive\n2)loop send time\n3)loop recive\nq)quit\nInput command: "
+                )
+
+                if command == "1":
+                    msg = input("input message")
+                    msg_dict = {
+                        "from": user_name,
+                        "to": "#___ALL__",
+                        "message": msg,
+                        "encoding": "utf-8"
+                    }
+                    bytes_ = jim.gen_jim_req(jim.JIMAction.MSG, **msg_dict)
+                    res = send_ans_wait(bytes_, socket_)
+                    if type(res) is jim.GoodAnswer:
+                        if res.answer["response"] == 200:
+                            logger.debug(f"send message")
+                elif command == "2":
+                    try:
+                        while True:
+                            msg_dict = {
+                                "from": user_name,
+                                "to": "#___ALL__",
+                                "message": str(datetime.now()),
+                                "encoding": "utf-8"
+                            }
+                            bytes_ = jim.gen_jim_req(jim.JIMAction.MSG,
+                                                     **msg_dict)
+                            socket_.send(bytes_)
+                    except KeyboardInterrupt:
+                        pass
+                elif command == "3":
+                    try:
+                        while True:
+                            res = jim.parser_jim_answ(
+                                socket_.recv(jim.JIM_MAX_LEN_ANSWER))
+                            if type(res) is jim.GoodAnswer:
+                                if "response" in res.answer:
+                                    logger.debug(
+                                        f"Server send answer with {res.answer['response']}"
+                                    )
+                                elif "action" in res.answer:
+                                    answer = res.answer
+                                    msg_from = answer["from"]
+                                    # msg_to = answer["to"]
+                                    msg_text = answer["message"]
+                                    msg_enc = answer["encoding"]
+                                    fix_tex = msg_text.encode("utf-8").decode(
+                                        msg_enc)
+                                    action = res.answer["action"]
+                                    if action == jim.JIMAction.MSG:
+                                        logger.info(f"{msg_from}:{fix_tex}")
+
+                    except KeyboardInterrupt:
+                        pass
+                elif command == "q":
+                    socket_.close()
+                    break
     except ConnectionRefusedError:
         logger.warning("Server disconected")
         socket_.close()
