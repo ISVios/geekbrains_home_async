@@ -242,6 +242,7 @@ class JIMPacket:
         return ResponseGroup.UNKNOWN
 
     def __str__(self) -> str:
+        return f"{self.dict_}"
         if self.dict_:
             if self.dict_.get(JIMPacketFieldName.ACTION):
                 return f"JIMRequest({self.dict_['action']})"

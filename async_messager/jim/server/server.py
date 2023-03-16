@@ -86,6 +86,7 @@ class JIMServer:
             try:
                 client._send_in_stack()
                 packet = client._pop_packet()
+                logger.debug(f"answer to {packet}")
                 if packet and not packet.empty() and packet.dict_:
                     in_pack = packet.dict_
                     id_ = in_pack.get(JIMPacketFieldName.TIME)
@@ -191,6 +192,8 @@ class JIMServer:
     def __msg_action(self, client: JIMClient, packet: JIMPacket, id_: int,
                      clients: set):
 
+        logging.debug(f"{packet.dict_}")
+
         if not client.get_name():
             client._send_packet(JIMPacket.gen_answer(403, id_,
                                                      msg="need auth"))
@@ -203,8 +206,11 @@ class JIMServer:
 
             for to in clients:
                 if to != client:
-                    logger.debug(f"{msg_from} -> {msg_to}")
-                    to._push_packet_by(packet, name=msg_to)
+                    logger.debug(f"{msg_from} -> {msg_to} \n {in_pack}")
+                    if msg_to[0] == "#":
+                        to._push_packet_by(packet, group=msg_to[1:])
+                    else:
+                        to._push_packet_by(packet, name=msg_to)
 
             client._send_packet(JIMPacket.gen_answer(200, id_, msg="Ok"))
 

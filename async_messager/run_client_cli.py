@@ -42,7 +42,7 @@ def read_command(client: JIMClient):
                 client.send_msg_to(SendTo.user(name), msg)
 
             elif command == "3":
-                name = input("Group name(empty to all): ") or "__ALL__"
+                name = input("Group name(empty to all): ") or "___ALL___"
                 msg = input("Send msg: ")
 
                 client.send_msg_to(SendTo.group(name), msg)

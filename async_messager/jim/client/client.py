@@ -234,6 +234,7 @@ class JIMClient:
 
     @jim.logger.logger_func.log
     def in_group(self, group_name: str) -> bool:
+        logger.debug(f"{group_name} in {self.__status.groups}")
         return group_name in self.__status.groups
 
     @jim.logger.logger_func.log
@@ -330,6 +331,7 @@ class JIMClient:
 
     @jim.logger.logger_func.log
     def _push_packet_to(self, packet: JIMPacket):
+        logger.debug(f" {packet} to send stack")
         self.__to_send.put(packet)
 
     @jim.logger.logger_func.log
@@ -349,8 +351,12 @@ class JIMClient:
                         packet: JIMPacket,
                         name: "str|None" = None,
                         group: "str|None" = None):
-        logger.debug(f"----> {self.__status}")
         if self.__status:
+            if group:
+                logger.debug(f"----> G:{group}({self.in_group(group)})  ")
+            elif name:
+                logger.debug(f"----> G:{name}({self.get_name() == name})  ")
+
             if group and self.in_group(group):
                 self.__to_send.put(packet)
                 logger.debug(f"OUT {packet} -> GROUP({group})")
