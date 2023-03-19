@@ -1,39 +1,91 @@
 """
 JIMServer
+
+Реализовать дескриптор для класса серверного сокета, а в нем — проверку номера порта. 
+Это должно быть целое число (>=0).
+Значение порта по умолчанию равняется 7777.
+Дескриптор надо создать в отдельном классе.
+Его экземпляр добавить в пределах класса серверного сокета.
+Номер порта передается в экземпляр дескриптора при запуске сервера.
+
+Реализовать метакласс ServerVerifier, выполняющий базовую проверку класса «Сервер»:
+    отсутствие вызовов connect для сокетов;
+    использование сокетов для работы по TCP.
+
 """
-import argparse
 import logging
 import queue
 import select
 import socket
-import sys
-import threading
-import time
-from os import name
-from jim.logger.logger_func import log
-from jim.error.error import JIMClientDisconnect
+import dis
 
 import jim.logger.logger_server
-from jim.client import (JIMClient, RegistarationBy, RegistarationByGuest,
-                        RegistarationByName)
+from jim.client import JIMClient, RegistarationByName
+from jim.logger.logger_func import log
 from jim.packet.packet import JIMAction, JIMPacket, JIMPacketFieldName
 
 logger = logging.getLogger("server")
 
 
-class ReadThread(threading.Thread):
+class ServerVerifier(type):
 
-    def __init__(self):
-        super().__init__()
-        self.daemon = True
+    def __init__(self, clsname, bases, clsdict):
+        logger.debug(f"run metaclass")
+        methods = set()
+        attr = set()
+        for key, value in clsdict.items():
+            if hasattr(value, "__call__"):
+                func = dis.get_instructions(value)
+                for dec in func:
+                    if dec.opname == "LOAD_METHOD":
+                        methods.add(dec.argval)
+                    elif dec.opname == "LOAD_ATTR":
+                        attr.add(dec.argval)
 
-    def run(self) -> None:
-        while True:
-            print(f"Cur time {time.time()}")
-            time.sleep(10)
+        if "connect" in methods:
+            raise ValueError(
+                "Please don`t set name 'connect' function on server")
+
+        if not ("SOCK_STREAM" in attr and "AF_INET" in attr):
+            raise ValueError(
+                "Socket must be run with AF_INET and SOCK_STREAM param")
+
+        type.__init__(self, clsname, bases, clsdict)
 
 
-class JIMServer:
+class PortProperty:
+
+    def __init__(self) -> None:
+        self.name = "port"
+        self.default = 7777
+        self.type = int
+        self.range = {"min": 1024, 'max': 49151}
+        logger.debug("init PortProperty")
+
+    def __set__(self, instance, value):
+
+        if not type(value) is self.type:
+            error = f"wrong port type {value} is {type(value)}"
+            logger.critical(error)
+            raise ValueError(error)
+
+        if value < self.range["min"] or value > self.range["max"]:
+            error = f"port is unbound {self.range['min']} < {value} < {self.range['max']}"
+            logger.critical(error)
+            raise ValueError(error)
+
+        instance.__dict__[self.name] = value
+        logger.debug("set PortProperty")
+
+    def __get__(self, instance, cls):
+        logger.debug("get PortProperty")
+        if instance is None:
+            return self
+        return instance.__dict__.get(self.name, self.default)
+
+
+class JIMServer(metaclass=ServerVerifier):
+    port = PortProperty()
     __socket: socket.socket
     __clients: set
     __commands: queue.SimpleQueue  # for cli or gui command
@@ -217,7 +269,8 @@ class JIMServer:
     def run(self, args):
         try:
             logger.setLevel(args.log)
-            self.__socket.bind((args.addr, args.port))
+            self.port = args.port  # if del this line port will be 7777
+            self.__socket.bind((args.addr, self.port))
             self.__socket.listen(args.count)
             self.__socket.settimeout(0.5)
             logger.info(f"Server listen {args.addr}:{args.port}")
@@ -280,16 +333,16 @@ class JIMServer:
                     logger.warning(f"Force stop server")
                     self.__socket.shutdown(socket.SHUT_RDWR)
                     self.__socket.close()
-                    exit(-1)
+                    return -1
                 except Exception as ex:
                     pass
 
             self.__socket.shutdown(socket.SHUT_RDWR)
             self.__socket.close()
-            exit(0)
+            return 0
         except OSError:
             logger.critical(f"Port {args.port} already used.")
-            exit(-1)
+            return -1
 
 
 if __name__ == "__main__":

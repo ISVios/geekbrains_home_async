@@ -1,11 +1,34 @@
 """
 JIMClient
+
+1. Реализовать метакласс ClientVerifier, выполняющий базовую проверку класса «Клиент» (для
+некоторых проверок уместно использовать модуль dis):
+    отсутствие вызовов accept и listen для сокетов;
+    использование сокетов для работы по TCP;
+    ***отсутствие создания сокетов на уровне классов, то есть отсутствие конструкций такого 
+
+вида:
+
+    class Client:
+        __socket = socket() 
+
+***) данную задачу решить не могу так как, JIMClient является select элементом для JIMServer. 
+Для практики можно реализовать дескриптор SocketProperty()
+    class SocketProperty:
+        __get__ - если socket не был установлен - создать новый(для клиента), иначе вернуть существующий(клиент/сервер)
+
+И уже его проверить на наличие(и 'приватное' расположение)
+
+class JIMClient:
+    __socket = SocketProperty()
+
 """
-import sys
+import dis
 import json
 import logging
 import queue
 import socket
+import sys
 from datetime import datetime, timedelta
 from select import select
 
@@ -18,9 +41,71 @@ from jim.packet.packet import JIMAction, JIMPacketFieldName
 # ToDO: get used logger
 logger = logging.getLogger("client")
 MAIN_MODULE = sys.modules.get("__main__") or None
-if MAIN_MODULE and MAIN_MODULE.__file__:
+if MAIN_MODULE and hasattr(MAIN_MODULE, __file__) and MAIN_MODULE.__file__:
     if MAIN_MODULE.__file__.find("server") > 0:
         logger = logging.getLogger("server")
+
+
+class ClientVerifier(type):
+
+    def __init__(self, clsname, bases, clsdict):
+
+        BAD_METHOD = ["accept", "listen"]
+
+        logger.debug("run metaclass ClientVerifier")
+
+        attr = set()
+        methods = set()
+        for key, value in clsdict.items():
+            ##test class:
+            ##    __socket = SocketProperty() -> __socket == _{clsname}{value}
+
+            if (type(value) == SocketProperty):
+                if not key.startswith(f"_{clsname}"):
+                    raise ValueError(
+                        f"Field of 'SocketProperty' must be __{key} (start with __)"
+                    )
+
+            if hasattr(value, "__call__"):
+                decompile_code = dis.get_instructions(value)
+                for cmd in decompile_code:
+                    if cmd.opcode == "LOAD_METHOD":
+                        methods.add(cmd.argval)
+                    elif cmd.opcode == "LOAD_ATTR":
+                        attr.add(cmd.argval)
+
+        for method in methods:
+            if method in BAD_METHOD:
+                raise ValueError(f"Use {BAD_METHOD} in code")
+
+        type.__init__(self, clsname, bases, clsdict)
+
+
+class SocketProperty:
+
+    def __init__(self) -> None:
+        self.name = "__socket"
+
+    def __get__(self, instance, cls):
+        _socket = instance.__dict__.get(self.name)
+        if not _socket:
+            _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            instance.__dict__[self.name] = _socket
+            return _socket
+        else:
+            return _socket
+
+    def __set__(self, instance, value):
+        logger.debug("set SocketProperty")
+
+        if not type(value) is socket.socket:
+            raise ValueError("socket must be socket")
+
+        _socket = self.__dict__.get(self.name)
+        if _socket:
+            logger.error(f"somewhere try reset exist socket")
+        else:
+            instance.__dict__[self.name] = value
 
 
 class SendTo:
@@ -115,13 +200,15 @@ class JIMClientProbe:
         return True
 
 
-class JIMClient:
+class JIMClient(metaclass=ClientVerifier):
     __all_client__: "None|set" = None
-    __socket: socket.socket
+    __socket = SocketProperty()
+    # __socket: socket.socket
     __status: JIMCllientStatus
     __recive_packet: queue.SimpleQueue
     __to_send: queue.SimpleQueue
     __wait_packet: dict
+    type_ = "client"
 
     def fileno(self) -> int:
         return self.__socket.fileno()
@@ -132,9 +219,13 @@ class JIMClient:
                  _socket: "socket.socket|None" = None) -> None:
 
         if _socket:
+            # server mode
             self.__socket = _socket
         else:
-            self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # client mode
+            # in descriptor SocketProperty() VVVV
+            # self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # use descriptor
             self.__socket.connect((host, port))
             logger.debug(f"connect to {host}:{port}")
 
@@ -352,10 +443,10 @@ class JIMClient:
                         name: "str|None" = None,
                         group: "str|None" = None):
         if self.__status:
-            if group:
-                logger.debug(f"----> G:{group}({self.in_group(group)})  ")
-            elif name:
-                logger.debug(f"----> G:{name}({self.get_name() == name})  ")
+            # if group:
+            #     logger.debug(f"----> G:{group}({self.in_group(group)})  ")
+            # elif name:
+            #     logger.debug(f"----> G:{name}({self.get_name() == name})  ")
 
             if group and self.in_group(group):
                 self.__to_send.put(packet)
@@ -381,11 +472,14 @@ class JIMClient:
                     id_ = pack.dict_["id"]
                     self.update_wait(pack, id_)
 
-                if pack and pack.is_field(JIMPacketFieldName.ACTION):
+                if pack and pack.dict_ and pack.is_field(
+                        JIMPacketFieldName.ACTION):
 
                     if pack.is_field_value(JIMPacketFieldName.ACTION,
                                            JIMAction.MSG):
-                        logger.debug(f"IN {pack.dict_}")
+                        msg = pack.dict_
+                        # logger.debug(f"IN {pack.dict_}")
+                        logger.debug(f"{msg['from']}: {msg['message']}")
 
             if write:
                 self._send_in_stack()
@@ -412,7 +506,13 @@ class JIMClient:
 if __name__ == "__main__":
     import unittest
 
+    class TESTJIMClientMetaGood(metaclass=ClientVerifier):
+        __socket = SocketProperty()
+
+    class TESTJIMClientMetaBad(metaclass=ClientVerifier):
+        socket = SocketProperty()
+
     class TESTJIMClient(unittest.TestCase):
-        raise NotImplemented
+        pass
 
     unittest.main()

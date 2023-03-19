@@ -21,9 +21,25 @@ q) Quit
 >> """
 
 
-def read_command(client: JIMClient):
+def read_command(client: JIMClient, args):
     time.sleep(2)
     try:
+
+        if args.auth:
+            user_name = args.auth.strip()
+            client.registaration(RegistarationByName(user_name))
+            while client.get_name() != user_name:
+                print(f"WAIT registarion to {args.auth}", end="\r")
+            print(f"{args.auth}...OK", end="\r")
+
+        if args.broadcast:
+            while True:
+                cur_time = time.localtime()
+                cur_time = time.strftime("%H:%M:%S", cur_time)
+                print(f"broadcast time: {cur_time}", end="\r")
+                client.send_msg_to(SendTo.group("___ALL___"), cur_time)
+                time.sleep(1)
+
         while True:
             print(f"Name: {client.get_name()}\t {client.wait()}")
             print(f"Groups: {client.get_groups()}")
@@ -83,10 +99,20 @@ if __name__ == "__main__":
                         default="0.0.0.0",
                         help="IP-addres to listen. (default: 0.0.0.0)")
 
+    parser.add_argument("-A",
+                        "--auth",
+                        type=str,
+                        help="automatic authenticate")
+
+    parser.add_argument("--broadcast",
+                        action="store_true",
+                        help="Convert client to broadcast time")
+
     args = parser.parse_args()
 
     client = JIMClient(args.addr, args.port)
-    t = threading.Thread(target=read_command, args=(client, ))
+
+    t = threading.Thread(target=read_command, args=(client, args))
     t.daemon = True
     t.start()
 
