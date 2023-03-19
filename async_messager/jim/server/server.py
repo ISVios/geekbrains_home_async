@@ -280,16 +280,16 @@ class JIMServer:
                     logger.warning(f"Force stop server")
                     self.__socket.shutdown(socket.SHUT_RDWR)
                     self.__socket.close()
-                    exit(-1)
+                    return -1
                 except Exception as ex:
                     pass
 
             self.__socket.shutdown(socket.SHUT_RDWR)
             self.__socket.close()
-            exit(0)
+            return 0
         except OSError:
             logger.critical(f"Port {args.port} already used.")
-            exit(-1)
+            return -1
 
 
 if __name__ == "__main__":

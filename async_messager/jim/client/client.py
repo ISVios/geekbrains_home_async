@@ -352,10 +352,10 @@ class JIMClient:
                         name: "str|None" = None,
                         group: "str|None" = None):
         if self.__status:
-            if group:
-                logger.debug(f"----> G:{group}({self.in_group(group)})  ")
-            elif name:
-                logger.debug(f"----> G:{name}({self.get_name() == name})  ")
+            # if group:
+            #     logger.debug(f"----> G:{group}({self.in_group(group)})  ")
+            # elif name:
+            #     logger.debug(f"----> G:{name}({self.get_name() == name})  ")
 
             if group and self.in_group(group):
                 self.__to_send.put(packet)
@@ -381,11 +381,14 @@ class JIMClient:
                     id_ = pack.dict_["id"]
                     self.update_wait(pack, id_)
 
-                if pack and pack.is_field(JIMPacketFieldName.ACTION):
+                if pack and pack.dict_ and pack.is_field(
+                        JIMPacketFieldName.ACTION):
 
                     if pack.is_field_value(JIMPacketFieldName.ACTION,
                                            JIMAction.MSG):
-                        logger.debug(f"IN {pack.dict_}")
+                        msg = pack.dict_
+                        # logger.debug(f"IN {pack.dict_}")
+                        logger.debug(f"{msg['from']}: {msg['message']}")
 
             if write:
                 self._send_in_stack()
