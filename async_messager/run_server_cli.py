@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 """
-import sys
+import time
 import argparse
 from jim.server import JIMServer
 
@@ -41,4 +41,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     server = JIMServer()
-    server.run(args)
+    try:
+        result = -1
+        while result != 0:
+            result = server.run(args)
+    except:
+        pass
