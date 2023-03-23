@@ -18,7 +18,8 @@ TERMINAL_LOGGGR_LEVEL = logging.DEBUG
 logger = logging.getLogger("client")
 logger.root.setLevel(GLOBAL_LOGGER_LEVEL)
 
-logger_formater = logging.Formatter()
+logger_formater = logging.Formatter(
+    "<%(asctime)s> <%(levelname)s> <%(name)s> <%(message)s>")
 
 logger_hander_file = logging.FileHandler(log_path)
 logger_hander_file.setFormatter(logger_formater)

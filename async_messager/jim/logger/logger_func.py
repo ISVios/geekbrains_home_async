@@ -9,7 +9,7 @@ import traceback
 logger = logging.getLogger()
 
 MAIN_MODULE = sys.modules.get("__main__") or None
-if MAIN_MODULE and MAIN_MODULE.__file__:
+if MAIN_MODULE and hasattr(MAIN_MODULE, __file__) and MAIN_MODULE.__file__:
     if MAIN_MODULE.__file__.find("server") > 0:
         logger = logging.getLogger("server").getChild("__func__")
     elif MAIN_MODULE.__file__.find("client") > 0:
