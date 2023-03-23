@@ -213,19 +213,21 @@ class JIMClient(metaclass=ClientVerifier):
     def fileno(self) -> int:
         return self.__socket.fileno()
 
+    def _model(self):
+        if hasattr(self.status, "model"):
+            return getattr(self.status, "model")
+
     def __init__(self,
                  host: "str|None" = None,
                  port: "str|None" = None,
-                 _socket: "socket.socket|None" = None) -> None:
+                 _socket: "socket.socket|None" = None,
+                 _ip: "socket._RetAddress|None" = None) -> None:
 
         if _socket:
             # server mode
             self.__socket = _socket
+            self.__ip = _ip
         else:
-            # client mode
-            # in descriptor SocketProperty() VVVV
-            # self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # use descriptor
             self.__socket.connect((host, port))
             logger.debug(f"connect to {host}:{port}")
 
@@ -412,6 +414,10 @@ class JIMClient(metaclass=ClientVerifier):
         return dict_
 
     @jim.logger.logger_func.log
+    def _get_ip(self):
+        return self.__ip
+
+    @jim.logger.logger_func.log
     def _recive_packet(self, ) -> "JIMPacket|None":
         "only recive. no stack"
         return JIMPacket(from_dict=self._recive_jim_json())
@@ -443,11 +449,6 @@ class JIMClient(metaclass=ClientVerifier):
                         name: "str|None" = None,
                         group: "str|None" = None):
         if self.__status:
-            # if group:
-            #     logger.debug(f"----> G:{group}({self.in_group(group)})  ")
-            # elif name:
-            #     logger.debug(f"----> G:{name}({self.get_name() == name})  ")
-
             if group and self.in_group(group):
                 self.__to_send.put(packet)
                 logger.debug(f"OUT {packet} -> GROUP({group})")
@@ -494,10 +495,11 @@ class JIMClient(metaclass=ClientVerifier):
 
     @classmethod
     @jim.logger.logger_func.log
-    def _from_server(cls, socket: socket.socket) -> "JIMClient":
+    def _from_server(cls, socket: socket.socket, addr) -> "JIMClient":
         if not cls.__all_client__:
             cls.__all_client__ = set()
-        client = JIMClient(_socket=socket)
+        client = JIMClient(_socket=socket, _ip=addr)
+
         cls.__all_client__.add(client)
         logger.debug("some connect {client}")
         return client

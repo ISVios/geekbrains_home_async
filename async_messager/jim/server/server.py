@@ -13,18 +13,21 @@ JIMServer
     использование сокетов для работы по TCP.
 
 """
+import dis
 import logging
 import queue
 import select
 import socket
-import dis
 
 import jim.logger.logger_server
 from jim.client import JIMClient, RegistarationByName
+from jim.db import DataBaseORM
 from jim.logger.logger_func import log
 from jim.packet.packet import JIMAction, JIMPacket, JIMPacketFieldName
 
 logger = logging.getLogger("server")
+
+db = DataBaseORM()
 
 
 class ServerVerifier(type):
@@ -86,6 +89,7 @@ class PortProperty:
 
 class JIMServer(metaclass=ServerVerifier):
     port = PortProperty()
+    # db = DataBaseProperty()
     __socket: socket.socket
     __clients: set
     __commands: queue.SimpleQueue  # for cli or gui command
@@ -156,6 +160,14 @@ class JIMServer(metaclass=ServerVerifier):
                                 continue
                             self.__authenticate_action(client, packet, id_,
                                                        clients)
+                            # if client reg add to db
+                            if client.get_name != None:
+                                try:
+                                    db.add_history(client)
+                                    logger.debug(
+                                        f"---------> {client._model()}")
+                                except Exception as ex:
+                                    logger.error(f"DB: {ex}")
                         elif action == JIMAction.JOIN:
                             client._send_packet(JIMPacket.gen_answer(400, id_))
 
@@ -205,6 +217,7 @@ class JIMServer(metaclass=ServerVerifier):
                         logger.error(f"UNKNOWN {packet}")
             # except SendAnswer as send:
             # ToDo
+                db.update()
             except:
                 clients.remove(client)
                 client.disconnect()
@@ -224,6 +237,7 @@ class JIMServer(metaclass=ServerVerifier):
             client._send_packet(
                 JIMPacket.gen_answer(400, id_, msg="already auth"))
             logger.warning(f"{client} try rereg by '{name}'")
+
             # return already auth
         elif client_name != name:
             # ToDo: find duplicates
@@ -233,7 +247,6 @@ class JIMServer(metaclass=ServerVerifier):
                         400, id_, msg="client with this name alredy exist"))
                 logger.debug(f"{client} duplicate reg by {name}")
                 return
-
             client.status.client_type = RegistarationByName(name)
             client._send_packet(JIMPacket.gen_answer(200, id_, msg="OK"))
             logger.debug(f"{client} reg by '{name}'")
@@ -277,21 +290,21 @@ class JIMServer(metaclass=ServerVerifier):
 
             while True:
                 try:
-                    client, _ = self.__socket.accept()
+                    client, addr = self.__socket.accept()
                 except KeyboardInterrupt:
                     raise KeyboardInterrupt
                 except:
                     # if timeout
                     pass
                 else:
-                    self.__clients.add(JIMClient._from_server(client))
+                    self.__clients.add(JIMClient._from_server(client, addr))
                 finally:
                     read_io = []
                     write_io = []
 
                     try:
                         logger.debug(f"Clients online: {len(self.__clients)}")
-                        logger.debug(f"Comands: {self.__commands.qsize()}")
+                        # logger.debug(f"Comands: {self.__commands.qsize()}")
 
                         read_io, write_io, _ = select.select(
                             self.__clients, self.__clients, [], 0)
@@ -317,10 +330,6 @@ class JIMServer(metaclass=ServerVerifier):
                         self._all_answer(cur_command, write_io, self.__clients)
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
-                    # except Exception as ex:
-                    #     logger.critical(f"->>>>>> {ex}")
-                    #     raise ex
-                    #     logger.critical(ex.__str__())
 
         except KeyboardInterrupt:
             # send to all client QUIT
@@ -343,6 +352,13 @@ class JIMServer(metaclass=ServerVerifier):
         except OSError:
             logger.critical(f"Port {args.port} already used.")
             return -1
+
+    def __del__(self):
+        try:
+            self.__socket.shutdown(socket.SHUT_RDWR)
+            self.__socket.close()
+        except:
+            pass
 
 
 if __name__ == "__main__":
