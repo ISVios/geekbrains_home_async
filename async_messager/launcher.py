@@ -15,8 +15,9 @@ PWD = os.getcwd()
 CLIENT_SCRIPT_PATH = os.path.join(PWD, "run_client_cli.py")
 SERVER_SCRIPT_PATH = os.path.join(PWD, "run_server_cli.py")
 
-COUNT_OF_CLIENT_READ = 1
-COUNT_OF_CLIENT_WRITE = 1
+COUNT_OF_CLIENT_READ = 0
+COUNT_OF_CLIENT_WRITE = 0
+COUNT_OF_CLIENT_ONLY_REG = 10
 
 BROADCAST_ARGS = "--broadcast-time"
 LISTENER_ARGS = ["--listener"]
@@ -48,6 +49,14 @@ if __name__ == "__main__":
         proc = subprocess.Popen([
             "konsole", f"-p tabtitle='Reader:{i}'", "-e", "python",
             CLIENT_SCRIPT_PATH
+        ])
+        pids.append(proc)
+
+    print(f"Run register readers clients ({COUNT_OF_CLIENT_ONLY_REG})")
+    for i in range(COUNT_OF_CLIENT_ONLY_REG):
+        proc = subprocess.Popen([
+            "konsole", f"-p tabtitle='Register:{i}'", "-e", "python",
+            CLIENT_SCRIPT_PATH, f"-A reg_user{i}", "--broadcast"
         ])
         pids.append(proc)
 

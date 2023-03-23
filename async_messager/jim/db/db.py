@@ -51,6 +51,12 @@ class DataBaseORM:
         self.__session = session
         session.commit()
 
+        # reset all active
+        broken_active = session.query(ClientModel).filter_by(active=True).all()
+        for client in broken_active:
+            self.client_active_status(client=client, active=False)
+        session.commit()
+
     def delete(self, db_model, force_commit: bool = False):
         self.__session.delete(db_model)
         if force_commit:
@@ -90,9 +96,14 @@ class DataBaseORM:
                 self.__session.add(db_client)
                 if force_commit:
                     self.__session.commit()
+
+                if type(client) is JIMClient:
+                    client.status.model = db_client
                 return db_client
             else:
                 logger.debug(f"DB\t--->\t{dup}")
+                if type(client) is JIMClient:
+                    client.status.model = db_client
                 return dup
 
     def get_client(self,
@@ -108,15 +119,15 @@ class DataBaseORM:
         no_update = by_no_update_model
         model = None
 
-        if jim and not hasattr(jim.status, "model"):
+        if jim and not jim.status.model:
             name = jim.get_name()
             if not name:
                 raise NotImplementedError
         if name:
             model = self.query(ClientModel).filter_by(name=name).one_or_none()
 
-        if jim and hasattr(jim.status, "model"):
-            no_update = getattr(jim.status, "model")
+        if jim and jim.status.model:
+            no_update = jim.status.model
 
         if no_update:
             model = self.query(ClientModel).filter_by(
@@ -124,13 +135,14 @@ class DataBaseORM:
 
         if model:
             if jim:
-                setattr(jim.status, "model", model)
+                jim.status.model = model
             return model
 
     def client_active_status(self,
                              client: "JIMClient|ClientModel",
                              active: bool,
                              force_commit: bool = False):
+        logger.debug(f"update_status")
         db_client = None
         if type(client) is JIMClient:
             db_client = self.get_client(by_jim_client=client)
@@ -166,6 +178,7 @@ class DataBaseORM:
                                             ip=ip,
                                             login_time=current_time)
             self.__session.add(db_history)
+            self.client_active_status(db_client, True, True)
             if force_commit:
                 self.update()
             logger.debug(f"{db_history} ---> DB")

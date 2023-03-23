@@ -21,7 +21,7 @@ import socket
 
 import jim.logger.logger_server
 from jim.client import JIMClient, RegistarationByName
-from jim.db import DataBaseORM
+from jim.db import DataBaseORM, ClientModel
 from jim.logger.logger_func import log
 from jim.packet.packet import JIMAction, JIMPacket, JIMPacketFieldName
 
@@ -131,6 +131,7 @@ class JIMServer(metaclass=ServerVerifier):
                     logger.warning(f"{packet} is Good")
                     client._push_packet(packet)
             except:
+                db.client_active_status(client, False, force_commit=True)
                 clients.remove(client)
                 client.disconnect()
                 logger.error(f"{client} is disconnected.")
@@ -161,11 +162,10 @@ class JIMServer(metaclass=ServerVerifier):
                             self.__authenticate_action(client, packet, id_,
                                                        clients)
                             # if client reg add to db
-                            if client.get_name != None:
+                            if client.get_name() != None:
                                 try:
                                     db.add_history(client)
-                                    logger.debug(
-                                        f"---------> {client._model()}")
+                                    db.update()
                                 except Exception as ex:
                                     logger.error(f"DB: {ex}")
                         elif action == JIMAction.JOIN:
@@ -198,6 +198,9 @@ class JIMServer(metaclass=ServerVerifier):
                                 JIMPacket.gen_answer(400, id_,
                                                      "Unsupport action"))
                         elif action == JIMAction.QUIT:
+                            db.client_active_status(client,
+                                                    False,
+                                                    force_commit=True)
                             client._send_jim_json({})
                             logger.debug(f"{client} logout.")
                             client.disconnect()
@@ -219,6 +222,7 @@ class JIMServer(metaclass=ServerVerifier):
             # ToDo
                 db.update()
             except:
+                db.client_active_status(client, False, force_commit=True)
                 clients.remove(client)
                 client.disconnect()
                 logger.error(f"{client} is disconnected.")
@@ -336,6 +340,7 @@ class JIMServer(metaclass=ServerVerifier):
             logger.warning(f"stop server")
             for client in self.__clients:
                 try:
+                    db.client_active_status(client, False, force_commit=True)
                     client._send_packet(JIMPacket.gen_req(JIMAction.QUIT))
                     client.disconnect()
                 except KeyboardInterrupt:

@@ -31,6 +31,7 @@ import socket
 import sys
 from datetime import datetime, timedelta
 from select import select
+from typing import Any
 
 import jim.logger.logger_client
 import jim.logger.logger_func
@@ -163,10 +164,11 @@ class RegistarationByName(RegistarationBy):
 
 
 class JIMCllientStatus:
-    __slots__ = ["client_type", "groups", "probe"]
+    __slots__ = ["client_type", "groups", "probe", "model"]
     client_type: RegistarationBy
     groups: set
     probe: "JIMClientProbe"
+    model: "Any"
 
 
 class JIMClientProbe:
@@ -214,8 +216,7 @@ class JIMClient(metaclass=ClientVerifier):
         return self.__socket.fileno()
 
     def _model(self):
-        if hasattr(self.status, "model"):
-            return getattr(self.status, "model")
+        return self.__status.model
 
     def __init__(self,
                  host: "str|None" = None,
@@ -235,6 +236,7 @@ class JIMClient(metaclass=ClientVerifier):
 
         self.__status.client_type = RegistarationBy()
         self.__status.groups = set(["___ALL___"])
+        self.__status.model = None
 
         self.__recive_packet = queue.SimpleQueue()
         self.__to_send = queue.SimpleQueue()
@@ -367,6 +369,7 @@ class JIMClient(metaclass=ClientVerifier):
     def disconnect(self, ):
         if JIMClient.__all_client__:
             JIMClient.__all_client__.remove(self)
+
         self.__socket.close()
         logger.debug(f"{self} is disconnect.")
 
@@ -401,6 +404,8 @@ class JIMClient(metaclass=ClientVerifier):
     def _recive_bytes(self, size: int = JIMPacketConst.MAX_SIZE) -> bytes:
         # try:
         bytes_ = self.__socket.recv(size)
+        if bytes == b"":
+            raise JIMClientDisconnect(self)
         return bytes_
         # except:
         # logger.warning(f"{self} is disconnect")
@@ -487,8 +492,8 @@ class JIMClient(metaclass=ClientVerifier):
 
         except KeyboardInterrupt:
             exit(0)
-        except:
-            pass
+        except JIMClientDisconnect:
+            exit(0)
 
     def wait(self) -> int:
         return len(self.__wait_packet)

@@ -3,7 +3,8 @@ from datetime import datetime
 import sqlalchemy
 from sqlalchemy import (DATETIME, Boolean, Column, DateTime, ForeignKey,
                         Integer, String, Table, Text, sql)
-from sqlalchemy.orm import declarative_base, mapped_column, relationship
+from sqlalchemy.orm import (Session, declarative_base, mapped_column,
+                            relationship, sessionmaker)
 
 Model = declarative_base()
 
@@ -62,7 +63,7 @@ class ClientHistoryModel(Model):
     __tablename__ = "client_history"
     id = Column(Integer, primary_key=True)
     client_id = Column(ForeignKey("client.id"), nullable=False)
-    ip = Column(String(16), nullable=False, default="", server_default="")
+    ip = Column(String(30), nullable=False, default="", server_default="")
     login_time = Column(DateTime, nullable=False, default=datetime.now())
 
     client = relationship("ClientModel", back_populates="history")
