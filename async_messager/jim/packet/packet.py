@@ -17,12 +17,14 @@ class JIMPacketConst:
     MAX_MSG_MESSAGE = 500
     DUMPS_KWARGS = {"indent": 4, "ensure_ascii": False, "sort_keys": True}
 
+    # TodO: VVVVV
     @classmethod
     def reg_calback(cls, recv_pack, answer_pack, client):
         pass
 
 
 class JIMAction(enum.Enum):
+    KICK = "kick"  # kick user
     AUTHENTICATE = "authenticate"  # aut on server
     JOIN = "join"  # join chat
     LEAVE = "leave"  # leave chat
@@ -30,6 +32,9 @@ class JIMAction(enum.Enum):
     PRESENCE = "presence"  # client answer alive test
     PRОBE = "probe"  # server alive client test
     QUIT = "quit"  # disconected server
+    GET_CONTACTS = "get_contacts"  # get contacts of <user>
+    ADD_CONTACT = "add_contact"  # add contact for <user>
+    DEL_CONTACT = "del_contact"  # del contact from <user>
 
     def __eq__(self, str_value: str):
         return self.value == str_value
@@ -47,6 +52,8 @@ class JIMPacketFieldName:
     TO = "to"
     MESSAGE = "message"
     ENCODING = "encoding"
+    USER_LOGIN = "user_login"
+    USER_ID = "user_id"
 
 
 class ResponseGroup(enum.Enum):
@@ -68,14 +75,16 @@ class JIMPacket:
     error: "Exception|None"
     calback: "Callable|None"
 
-    def __init__(self,
-                 from_bytes: "bytes|None" = None,
-                 from_str: "str|None" = None,
-                 from_dict: "dict|None" = None,
-                 from_packet: "JIMPacket|None" = None,
-                 calback_func: "Callable|None" = None,
-                 packet_encoding: str = "utf-8",
-                 append_dict: dict = {}) -> None:
+    def __init__(
+        self,
+        from_bytes: "bytes|None" = None,
+        from_str: "str|None" = None,
+        from_dict: "dict|None" = None,
+        from_packet: "JIMPacket|None" = None,
+        calback_func: "Callable|None" = None,
+        packet_encoding: str = "utf-8",
+        append_dict: dict = {},
+    ) -> None:
         self.bytes_ = from_bytes
         self.str_ = from_str
         self.dict_ = from_dict
@@ -123,11 +132,9 @@ class JIMPacket:
 
         return False
 
-    def is_field_value(self,
-                       field_name: str,
-                       value: Any,
-                       many: bool = False,
-                       only_good: bool = False) -> bool:
+    def is_field_value(
+        self, field_name: str, value: Any, many: bool = False, only_good: bool = False
+    ) -> bool:
         if not self.is_field(field_name, only_good=only_good):
             return False
 
@@ -141,7 +148,6 @@ class JIMPacket:
         return False
 
     def need_field(self, field_name: str) -> "JIMPacket":
-
         if not self.is_field(field_name, only_good=True):
             # Think: convert to copy
             bad_packet = JIMPacket(from_packet=self)
@@ -150,16 +156,14 @@ class JIMPacket:
 
         return self
 
-    def need_field_value(self,
-                         field_name: str,
-                         value: Any,
-                         many: bool = False) -> "JIMPacket":
+    def need_field_value(
+        self, field_name: str, value: Any, many: bool = False
+    ) -> "JIMPacket":
         field_test = self.need_field(field_name)
         if field_test.is_bad_packet():
             return field_test
 
-        if not field_test.is_field_value(
-                field_name, value, many=many, only_good=True):
+        if not field_test.is_field_value(field_name, value, many=many, only_good=True):
             bad_packet = JIMPacket(from_packet=self)
             bad_packet.error = JIMPacketWrongValue(field_name, value, many)
             return bad_packet
@@ -191,10 +195,11 @@ class JIMPacket:
         action: JIMAction,
         # packet_encoding: str = "utf-8",
         # dumps_kwargs=JIMPacketConst.DUMPS_KWARGS,
-        append_dict: dict = {}):
+        append_dict: dict = {},
+    ):
         dict_req: dict = {
             JIMPacketFieldName.ACTION: action.value,
-            JIMPacketFieldName.TIME: int(datetime.datetime.now().timestamp())
+            JIMPacketFieldName.TIME: int(datetime.datetime.now().timestamp()),
         }
 
         dict_req.update(append_dict)
@@ -203,17 +208,18 @@ class JIMPacket:
 
     @classmethod
     def gen_answer(
-            cls,
-            response: int,
-            to_id: "int|None" = None,
-            msg: "str|None" = None,
-            # packet_encoding: str = "utf-8",
-            # dumps_kwargs=JIMPacketConst.DUMPS_KWARGS,
-            append_dict: dict = {},
-            calback_func: "Callable|None" = None):
+        cls,
+        response: int,
+        to_id: "int|None" = None,
+        msg: "str|None" = None,
+        # packet_encoding: str = "utf-8",
+        # dumps_kwargs=JIMPacketConst.DUMPS_KWARGS,
+        append_dict: dict = {},
+        calback_func: "Callable|None" = None,
+    ):
         dict_answer: dict = {
             JIMPacketFieldName.RESPOSE: response,
-            JIMPacketFieldName.TIME: int(datetime.datetime.now().timestamp())
+            JIMPacketFieldName.TIME: int(datetime.datetime.now().timestamp()),
         }
 
         if to_id:
@@ -258,25 +264,17 @@ if __name__ == "__main__":
     import unittest
 
     class TestPacket(unittest.TestCase):
-
         def test__gen_req(self):
             print()
-            req_pack = JIMPacket.gen_req(JIMAction.QUIT,
-                                         append_dict={
-                                             "a": 1,
-                                             "b": "c",
-                                             "user": {
-                                                 "a": 1,
-                                                 "b": "c"
-                                             }
-                                         })
+            req_pack = JIMPacket.gen_req(
+                JIMAction.QUIT,
+                append_dict={"a": 1, "b": "c", "user": {"a": 1, "b": "c"}},
+            )
             print(req_pack)
 
         def test__gen_answer(self):
             print()
-            answer_pack = JIMPacket.gen_answer(801,
-                                               to_id=123456,
-                                               msg="Test test")
+            answer_pack = JIMPacket.gen_answer(801, to_id=123456, msg="Test test")
             print(answer_pack)
 
     unittest.main()

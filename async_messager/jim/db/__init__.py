@@ -1,4 +1,3 @@
-from .db import DataBaseORM
-from .orm_model import ClientModel
+from .db import DataBaseServerORM, DataBaseClientORM
 
-__all__ = ["DataBaseORM", "ClientModel"]
+__all__ = ["DataBaseServerORM", "DataBaseClientORM"]

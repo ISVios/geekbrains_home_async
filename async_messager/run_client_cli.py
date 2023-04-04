@@ -14,8 +14,11 @@ COMMAND = """
 1) Registarotion by
 2) Send msg to client
 3) Send msg to group
-4) join in group
-5) leave from group
+4) join in group(No work)
+5) leave from group(No work)
+6) Get contacts
+7) Add user to contact
+8) Del user from contact
 q) Quit
 
 >> """
@@ -24,7 +27,6 @@ q) Quit
 def read_command(client: JIMClient, args):
     time.sleep(2)
     try:
-
         if args.auth:
             user_name = args.auth.strip()
             client.registaration(RegistarationByName(user_name))
@@ -71,11 +73,22 @@ def read_command(client: JIMClient, args):
                 name = input("Leave from: ")
                 client.leave_group(name)
 
+            elif command == "6":
+                client.get_contacts()
+
+            elif command == "7":
+                name = input("Add contact user name: ")
+                client.add_contact(name)
+
+            elif command == "8":
+                name = input("Del contact user name: ")
+                client.del_contact(name)
+
             elif command == "q":
                 client.disconnect()
                 raise KeyboardInterrupt
             else:
-                #update
+                # update
                 pass
 
     except KeyboardInterrupt:
@@ -83,30 +96,31 @@ def read_command(client: JIMClient, args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='JIM client.')
-    parser.add_argument("-p",
-                        "--port",
-                        const=1,
-                        type=int,
-                        nargs="?",
-                        default=7777,
-                        help="TCP-port. (default: 7777)")
-    parser.add_argument("-a",
-                        "--addr",
-                        const=1,
-                        type=str,
-                        nargs="?",
-                        default="0.0.0.0",
-                        help="IP-addres to listen. (default: 0.0.0.0)")
+    parser = argparse.ArgumentParser(description="JIM client.")
+    parser.add_argument(
+        "-p",
+        "--port",
+        const=1,
+        type=int,
+        nargs="?",
+        default=7777,
+        help="TCP-port. (default: 7777)",
+    )
+    parser.add_argument(
+        "-a",
+        "--addr",
+        const=1,
+        type=str,
+        nargs="?",
+        default="0.0.0.0",
+        help="IP-addres to listen. (default: 0.0.0.0)",
+    )
 
-    parser.add_argument("-A",
-                        "--auth",
-                        type=str,
-                        help="automatic authenticate")
+    parser.add_argument("-A", "--auth", type=str, help="automatic authenticate")
 
-    parser.add_argument("--broadcast",
-                        action="store_true",
-                        help="Convert client to broadcast time")
+    parser.add_argument(
+        "--broadcast", action="store_true", help="Convert client to broadcast time"
+    )
 
     args = parser.parse_args()
 
