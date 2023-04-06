@@ -76,7 +76,6 @@ class ServerGui(QtWidgets.QMainWindow):
         if not self.event_in.empty():
             cmd = self.event_in.get()
             cmd_type = type(cmd)
-            print(cmd)
 
         #     if cmd_type is EventClientNew:
         #         self.__add_anon()
@@ -98,30 +97,37 @@ class ServerGui(QtWidgets.QMainWindow):
     def __debug_component_init(self):
         self.debug_menu: QtWidgets.QMenu = self.menu_debug_gui
 
-        self.debug_menu_add_client: QtWidgets.QAction = self.action_add_anon
-        self.debug_menu_logout_client: QtWidgets.QAction = self.action_logout_client
-        self.debug_menu_login_client: QtWidgets.QAction = self.action_login_client
-        self.debug_menu_auth_client: QtWidgets.QAction = self.action_auth_client
-        self.debug_menu_kick_client: QtWidgets.QAction = self.action_kick_client
-        self.debug_menu_msg_to_client: QtWidgets.QAction = self.action_send_msg_to_user
-        self.debug_menu_msg_to_group: QtWidgets.QAction = self.action_send_msg_to_group
+        # self.debug_menu_add_client: QtWidgets.QAction = self.action_add_anon
+        # self.debug_menu_logout_client: QtWidgets.QAction = self.action_logout_client
+        # self.debug_menu_login_client: QtWidgets.QAction = self.action_login_client
+        # self.debug_menu_auth_client: QtWidgets.QAction = self.action_auth_client
+        # self.debug_menu_kick_client: QtWidgets.QAction = self.action_kick_client
+        # self.debug_menu_msg_to_client: QtWidgets.QAction = self.action_send_msg_to_user
+        # self.debug_menu_msg_to_group: QtWidgets.QAction = self.action_send_msg_to_group
 
-        self.debug_menu_add_client.triggered.connect(self.__add_anon_debug)
-        self.debug_menu_logout_client.triggered.connect(self.__logout_client_debug)
-        self.debug_menu_login_client.triggered.connect(self.__login_client_debug)
-        self.debug_menu_kick_client.triggered.connect(self.__kick_client_debug)
+        self.debug_menu_action_add_client.triggered.connect(self.__add_anon_debug)
+        self.debug_menu_action_login_client.triggered.connect(self.__login_client_debug)
+        self.debug_menu_action_logout_client.triggered.connect(
+            self.__logout_client_debug
+        )
+        self.debug_menu_action_login_client.triggered.connect(self.__login_client_debug)
+        self.debug_menu_action_kick_client.triggered.connect(self.__kick_client_debug)
 
-        self.debug_menu_auth_client.triggered.connect(self.__auth_client_debug)
+        self.debug_menu_action_auth_client.triggered.connect(self.__auth_client_debug)
 
-        self.debug_menu_msg_to_client.triggered.connect(self.__msg_client_debug)
-        self.debug_menu_msg_to_group.triggered.connect(self.__msg_group_debug)
+        self.debug_menu_action_send_msg_to_client.triggered.connect(
+            self.__msg_client_debug
+        )
+        self.debug_menu_action_send_msg_to_group.triggered.connect(
+            self.__msg_group_debug
+        )
 
     def __component_init(self):
         # MAIN_MENU_FILE
-        self.main_menu_action_run_server = self.action_run_server
-        self.main_menu_action_config_server = self.action_config_server
-        self.main_menu_action_stop_server = self.action_stop_server
-        self.main_menu_action_exit: QtWidgets.QAction = self.action_exit
+        # self.main_menu_action_run_server = self.action_run_server
+        # self.main_menu_action_config_server = self.action_config_server
+        # self.main_menu_action_stop_server = self.action_stop_server
+        # self.main_menu_action_exit: QtWidgets.QAction = self.action_exit
 
         # ABOUT
         self.about_author: QtWidgets.QAction = self.action_author
@@ -144,20 +150,20 @@ class ServerGui(QtWidgets.QMainWindow):
         # Todo: save config in dict
 
     def __select_client(self, select):
-        self.debug_menu_logout_client.setEnabled(True)
-        self.debug_menu_login_client.setEnabled(True)
-        self.debug_menu_auth_client.setEnabled(True)
-        self.debug_menu_kick_client.setEnabled(True)
-        self.debug_menu_msg_to_client.setEnabled(True)
-        self.debug_menu_msg_to_group.setEnabled(True)
+        self.debug_menu_action_logout_client.setEnabled(True)
+        self.debug_menu_action_login_client.setEnabled(True)
+        self.debug_menu_action_auth_client.setEnabled(True)
+        self.debug_menu_action_kick_client.setEnabled(True)
+        self.debug_menu_action_send_msg_to_client.setEnabled(True)
+        self.debug_menu_action_send_msg_to_group.setEnabled(True)
 
     def __deselect_client(self):
-        self.debug_menu_logout_client.setEnabled(False)
-        self.debug_menu_login_client.setEnabled(False)
-        self.debug_menu_auth_client.setEnabled(False)
-        self.debug_menu_kick_client.setEnabled(False)
-        self.debug_menu_msg_to_client.setEnabled(False)
-        self.debug_menu_msg_to_group.setEnabled(False)
+        self.debug_menu_action_logout_client.setEnabled(False)
+        self.debug_menu_action_login_client.setEnabled(False)
+        self.debug_menu_action_auth_client.setEnabled(False)
+        self.debug_menu_action_kick_client.setEnabled(False)
+        self.debug_menu_action_send_msg_to_client.setEnabled(False)
+        self.debug_menu_action_send_msg_to_group.setEnabled(False)
 
     def __run_server(self):
         # run server with param
