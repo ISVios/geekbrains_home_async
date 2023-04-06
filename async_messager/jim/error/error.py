@@ -13,6 +13,16 @@ class JIMClientDisconnect(JIMError):
     pass
 
 
+class JIMPacketResponseExeption(JIMError):
+    __slots__ = ["need_logout", "jim_packet"]
+    need_logout: bool
+
+    def __init__(self, jim_packet, need_logout: bool = False, *args) -> None:
+        super().__init__(*args)
+        self.jim_packet = jim_packet
+        self.need_logout = need_logout
+
+
 class JIMPacketNoExistField(JIMError):
     __slots__ = ["field_name"]
 
@@ -27,11 +37,9 @@ class JIMPacketNoExistField(JIMError):
 class JIMPacketWrongValue(JIMError):
     __slots__ = ["field_name", "need_value", "many"]
 
-    def __init__(self,
-                 field_name: str,
-                 need_value: Any,
-                 many: bool = False,
-                 *args: object) -> None:
+    def __init__(
+        self, field_name: str, need_value: Any, many: bool = False, *args: object
+    ) -> None:
         super().__init__(*args)
         self.field_name = field_name
         self.need_value = need_value

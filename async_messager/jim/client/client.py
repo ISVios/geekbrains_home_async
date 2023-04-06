@@ -1,26 +1,110 @@
 """
 JIMClient
+
+1. Реализовать метакласс ClientVerifier, выполняющий базовую проверку класса «Клиент» (для
+некоторых проверок уместно использовать модуль dis):
+    отсутствие вызовов accept и listen для сокетов;
+    использование сокетов для работы по TCP;
+    ***отсутствие создания сокетов на уровне классов, то есть отсутствие конструкций такого 
+
+вида:
+
+    class Client:
+        __socket = socket() 
+
+***) данную задачу решить не могу так как, JIMClient является select элементом для JIMServer. 
+Для практики можно реализовать дескриптор SocketProperty()
+    class SocketProperty:
+        __get__ - если socket не был установлен - создать новый(для клиента), иначе вернуть существующий(клиент/сервер)
+
+И уже его проверить на наличие(и 'приватное' расположение)
+
+class JIMClient:
+    __socket = SocketProperty()
+
 """
-import sys
+import dis
 import json
 import logging
 import queue
 import socket
+import sys
 from datetime import datetime, timedelta
 from select import select
+from typing import Any
 
 import jim.logger.logger_client
 import jim.logger.logger_func
+from jim.db import DataBaseClientORM
 from jim.error.error import JIMClientDisconnect
 from jim.packet import JIMPacket, JIMPacketConst
-from jim.packet.packet import JIMAction, JIMPacketFieldName
+from jim.packet.packet import JIMAction, JIMPacketFieldName, ResponseGroup
 
 # ToDO: get used logger
 logger = logging.getLogger("client")
 MAIN_MODULE = sys.modules.get("__main__") or None
-if MAIN_MODULE and MAIN_MODULE.__file__:
+if MAIN_MODULE and hasattr(MAIN_MODULE, __file__) and MAIN_MODULE.__file__:
     if MAIN_MODULE.__file__.find("server") > 0:
         logger = logging.getLogger("server")
+
+
+class ClientVerifier(type):
+    def __init__(self, clsname, bases, clsdict):
+        BAD_METHOD = ["accept", "listen"]
+
+        logger.debug("run metaclass ClientVerifier")
+
+        attr = set()
+        methods = set()
+        for key, value in clsdict.items():
+            ##test class:
+            ##    __socket = SocketProperty() -> __socket == _{clsname}{value}
+
+            if type(value) == SocketProperty:
+                if not key.startswith(f"_{clsname}"):
+                    raise ValueError(
+                        f"Field of 'SocketProperty' must be __{key} (start with __)"
+                    )
+
+            if hasattr(value, "__call__"):
+                decompile_code = dis.get_instructions(value)
+                for cmd in decompile_code:
+                    if cmd.opcode == "LOAD_METHOD":
+                        methods.add(cmd.argval)
+                    elif cmd.opcode == "LOAD_ATTR":
+                        attr.add(cmd.argval)
+
+        for method in methods:
+            if method in BAD_METHOD:
+                raise ValueError(f"Use {BAD_METHOD} in code")
+
+        type.__init__(self, clsname, bases, clsdict)
+
+
+class SocketProperty:
+    def __init__(self) -> None:
+        self.name = "__socket"
+
+    def __get__(self, instance, cls):
+        _socket = instance.__dict__.get(self.name)
+        if not _socket:
+            _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            instance.__dict__[self.name] = _socket
+            return _socket
+        else:
+            return _socket
+
+    def __set__(self, instance, value):
+        logger.debug("set SocketProperty")
+
+        if not type(value) is socket.socket:
+            raise ValueError("socket must be socket")
+
+        _socket = self.__dict__.get(self.name)
+        if _socket:
+            logger.error(f"somewhere try reset exist socket")
+        else:
+            instance.__dict__[self.name] = value
 
 
 class SendTo:
@@ -54,13 +138,11 @@ class RegistarationBy:
 
 
 class RegistarationByGuest(RegistarationBy):
-
     def __init__(self) -> None:
         super().__init__()
 
 
 class RegistarationByName(RegistarationBy):
-
     def __init__(self, _name: "str"):
         self.name = _name
 
@@ -78,10 +160,12 @@ class RegistarationByName(RegistarationBy):
 
 
 class JIMCllientStatus:
-    __slots__ = ["client_type", "groups", "probe"]
+    __slots__ = ["client_type", "groups", "probe", "model", "db"]
     client_type: RegistarationBy
     groups: set
     probe: "JIMClientProbe"
+    model: "Any"
+    db: DataBaseClientORM
 
 
 class JIMClientProbe:
@@ -98,16 +182,14 @@ class JIMClientProbe:
         return self.__next_time <= cur_time
 
     def update_probe(
-        self,
-        reset_counter: bool = False,
-        delta: timedelta = timedelta(hours=1)
+        self, reset_counter: bool = False, delta: timedelta = timedelta(hours=1)
     ) -> None:
         self.__next_time += delta
         self.__try_count = 0 if reset_counter else self.__try_count
 
-    def try_reconnect(self,
-                      max_try: int = 10,
-                      delta: timedelta = timedelta(hours=1)) -> bool:
+    def try_reconnect(
+        self, max_try: int = 10, delta: timedelta = timedelta(hours=1)
+    ) -> bool:
         if self.__try_count >= max_try:
             return False
 
@@ -115,26 +197,34 @@ class JIMClientProbe:
         return True
 
 
-class JIMClient:
+class JIMClient(metaclass=ClientVerifier):
     __all_client__: "None|set" = None
-    __socket: socket.socket
+    __socket = SocketProperty()
+    # __socket: socket.socket
     __status: JIMCllientStatus
     __recive_packet: queue.SimpleQueue
     __to_send: queue.SimpleQueue
     __wait_packet: dict
+    type_ = "client"
 
     def fileno(self) -> int:
         return self.__socket.fileno()
 
-    def __init__(self,
-                 host: "str|None" = None,
-                 port: "str|None" = None,
-                 _socket: "socket.socket|None" = None) -> None:
+    def _model(self):
+        return self.__status.model
 
+    def __init__(
+        self,
+        host: "str|None" = None,
+        port: "str|None" = None,
+        _socket: "socket.socket|None" = None,
+        _ip: "socket._RetAddress|None" = None,
+    ) -> None:
         if _socket:
+            # server mode
             self.__socket = _socket
+            self.__ip = _ip
         else:
-            self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__socket.connect((host, port))
             logger.debug(f"connect to {host}:{port}")
 
@@ -142,6 +232,7 @@ class JIMClient:
 
         self.__status.client_type = RegistarationBy()
         self.__status.groups = set(["___ALL___"])
+        self.__status.model = None
 
         self.__recive_packet = queue.SimpleQueue()
         self.__to_send = queue.SimpleQueue()
@@ -149,44 +240,144 @@ class JIMClient:
 
         if _socket:
             self.__status.probe = JIMClientProbe()
+        else:
+            pass
+            # self.__status.db = DataBaseClientORM() # init db when client have name
 
     @jim.logger.logger_func.log
     def registaration(self, by: RegistarationBy):
-
         if type(by) is RegistarationByGuest:
             pack = JIMPacket.gen_req(JIMAction.PRESENCE)
             return
 
         def _a(*args, **kwargs):
-            pack = kwargs.get("pack")
-            answer = kwargs.get("answer")
+            pack: "JIMPacket|None" = kwargs.get("pack")
+            answer: "JIMPacket|None" = kwargs.get("answer")
             client = kwargs.get("client")
             name = by.name
-            res = kwargs.get("res")
             if client and name:
                 if answer and answer.is_field(JIMPacketFieldName.RESPOSE):
                     response = answer.dict_[JIMPacketFieldName.RESPOSE]
                     if response == 200:
                         self.status.client_type = RegistarationByName(name)
+                        self.status.db = DataBaseClientORM(db_pah=f"./client_{name}.db")
+
+                        if answer.is_field(ResponseGroup.ALERT.value):
+                            msg = answer.dict_[ResponseGroup.ALERT.value]
+                            if type(msg) == list:
+                                for name in msg:
+                                    self.status.db.add_client(by_name=name)
+                                self.status.db.update()
                 logger.debug(f"WAITANSWER {pack} -> {answer}")
 
-            if res:
-                res.append((pack, answer))
-
         # gen auth pack
-        pack = JIMPacket.gen_req(JIMAction.AUTHENTICATE,
-                                 append_dict={
-                                     JIMPacketFieldName.USER: {
-                                         JIMPacketFieldName.USER_NAME: by.name
-                                     }
-                                 })
+        pack = JIMPacket.gen_req(
+            JIMAction.AUTHENTICATE,
+            append_dict={
+                JIMPacketFieldName.USER: {JIMPacketFieldName.USER_NAME: by.name}
+            },
+        )
         pack.calback = _a
         self._reg_wait_answert(pack)
         self._push_packet_to(pack)
 
     @jim.logger.logger_func.log
-    def send_msg_to(self, to: SendTo, message: str) -> None:
+    def get_contacts(self):
+        name = self.get_name()
+        if not name:
+            logger.info("Please auth")
+            return
 
+        # contacts = []
+
+        # gen calback
+        def _a(*args, **kwargs):
+            pack: "JIMPacket|None" = kwargs.get("pack")
+            answer: "JIMPacket|None" = kwargs.get("answer")
+            client: "JIMClient|None" = kwargs.get("client")
+
+            if answer and client and answer.is_field(JIMPacketFieldName.RESPOSE):
+                response = answer.dict_[JIMPacketFieldName.RESPOSE]
+                if response == 202:
+                    server_contacts = set(answer.dict_.get(ResponseGroup.ALERT.value))
+                    db = self.__status.db
+                    if not db:
+                        return
+
+                    local_contacts = set(
+                        map(lambda orm: str(orm.name), db.get_contacts())
+                    )
+
+                    to_del = local_contacts - server_contacts
+                    to_add = server_contacts - local_contacts
+
+                    for name in to_del:
+                        db.del_client(by_name=name)
+
+                    for name in to_add:
+                        db.add_client(by_name=name)
+
+                    db.update()
+
+                    # update db
+
+        # gen req
+        pack = JIMPacket.gen_req(
+            JIMAction.GET_CONTACTS, append_dict={JIMPacketFieldName.USER_LOGIN: name}
+        )
+        pack.calback = _a
+        self._reg_wait_answert(pack)
+        self._push_packet_to(pack)
+
+    def add_contact(self, user_name: str):
+        name = self.get_name()
+        if not name:
+            logger.info("Please auth")
+            return
+        pack = JIMPacket.gen_req(
+            JIMAction.ADD_CONTACT,
+            append_dict={
+                JIMPacketFieldName.USER_LOGIN: name,
+                JIMPacketFieldName.USER_ID: user_name,
+            },
+        )
+
+        def _a(*args, **kwargs):
+            pack = kwargs.get("pack")
+            answer = kwargs.get("answer")
+            logger.debug(f"WAITANSWER {pack} -> {answer}")
+
+        pack.calback = _a
+
+        self._reg_wait_answert(pack)
+        self._push_packet_to(pack)
+
+    def del_contact(self, user_name: str):
+        name = self.get_name()
+        if not name:
+            logger.info("Please auth")
+            return
+
+        pack = JIMPacket.gen_req(
+            JIMAction.DEL_CONTACT,
+            append_dict={
+                JIMPacketFieldName.USER_LOGIN: name,
+                JIMPacketFieldName.USER_ID: user_name,
+            },
+        )
+
+        def _a(*args, **kwargs):
+            pack = kwargs.get("pack")
+            answer = kwargs.get("answer")
+            logger.debug(f"WAITANSWER {pack} -> {answer}")
+
+        pack.calback = _a
+        self._reg_wait_answert(pack)
+        self._push_packet_to(pack)
+
+    # ToDo: add send to group
+    @jim.logger.logger_func.log
+    def send_msg_to(self, to: SendTo, message: str) -> None:
         if not self.get_name():
             logger.error("no auth user can`t send messages")
             return
@@ -196,8 +387,7 @@ class JIMClient:
             return
 
         if len(message) >= JIMPacketConst.MAX_MSG_MESSAGE:
-            logger.error(
-                "Max message size is {JIMPacketConst.MAX_MSG_MESSAGE}")
+            logger.error("Max message size is {JIMPacketConst.MAX_MSG_MESSAGE}")
 
         msg_to = to.name
         if to.type_ == "group_name":
@@ -205,18 +395,49 @@ class JIMClient:
             if msg_to[0] != "#":
                 msg_to = "#" + msg_to
 
-        pack = JIMPacket.gen_req(JIMAction.MSG,
-                                 append_dict={
-                                     JIMPacketFieldName.FROM: self.get_name(),
-                                     JIMPacketFieldName.TO: msg_to,
-                                     JIMPacketFieldName.ENCODING: "utf-8",
-                                     JIMPacketFieldName.MESSAGE: message
-                                 })
+        pack = JIMPacket.gen_req(
+            JIMAction.MSG,
+            append_dict={
+                JIMPacketFieldName.FROM: self.get_name(),
+                JIMPacketFieldName.TO: msg_to,
+                JIMPacketFieldName.ENCODING: "utf-8",
+                JIMPacketFieldName.MESSAGE: message,
+            },
+        )
 
         def _a(*args, **kwargs):
             pack = kwargs.get("pack")
             answer = kwargs.get("answer")
+            db = self.status.db
             logger.debug(f"WAITANSWER {pack} -> {answer}")
+
+            if not answer or not answer.dict_:
+                logger.warning(f"client store bad answer={answer}")
+                return
+
+            if not pack or not pack.dict_:
+                logger.warning(f"client store bad pack={pack}")
+                return
+
+            if not db:
+                logger.warning("client no have db")
+                return
+
+            in_answer_code = answer.dict_[JIMPacketFieldName.RESPOSE]
+
+            if in_answer_code == 200:
+                in_pack_msg = pack.dict_[JIMPacketFieldName.MESSAGE]
+                in_pack_user = pack.dict_[JIMPacketFieldName.TO]
+
+                # ignore group
+                if in_pack_user[0] == "#":
+                    logger.error("ToDo: noinplement store msg to db ")
+                    db.add_client(by_name=in_pack_user)
+
+                db.add_msg(by_name=in_pack_user, msg=in_pack_msg, force_commit=True)
+                logger.debug(f"MSG{in_pack_user}\t--->\tDB")
+
+            # update db
 
         pack.calback = _a
         self._reg_wait_answert(pack)
@@ -229,7 +450,9 @@ class JIMClient:
             logger.debug("REG WAIT PACK {id_}")
 
     @jim.logger.logger_func.log
-    def get_groups(self, ) -> set[str]:
+    def get_groups(
+        self,
+    ) -> set[str]:
         return self.__status.groups
 
     @jim.logger.logger_func.log
@@ -238,9 +461,10 @@ class JIMClient:
         return group_name in self.__status.groups
 
     @jim.logger.logger_func.log
-    def get_name(self, ) -> "None|str":
-        if self.__status and type(
-                self.status.client_type) is RegistarationByName:
+    def get_name(
+        self,
+    ) -> "None|str":
+        if self.__status and type(self.status.client_type) is RegistarationByName:
             return self.status.client_type.name
 
         return None
@@ -262,8 +486,10 @@ class JIMClient:
         raise NotImplemented
 
     @jim.logger.logger_func.log
-    def _logout(self, ):
-        pass  #self.registaration(ResetRegistration())
+    def _logout(
+        self,
+    ):
+        pass  # self.registaration(ResetRegistration())
 
     @property
     @jim.logger.logger_func.log
@@ -271,9 +497,12 @@ class JIMClient:
         return self.__status
 
     @jim.logger.logger_func.log
-    def disconnect(self, ):
+    def disconnect(
+        self,
+    ):
         if JIMClient.__all_client__:
             JIMClient.__all_client__.remove(self)
+
         self.__socket.close()
         logger.debug(f"{self} is disconnect.")
 
@@ -299,7 +528,9 @@ class JIMClient:
         # ToDo: add eror if pack is bad
 
     # @jim.logger.logger_func.log
-    def _send_in_stack(self, ):
+    def _send_in_stack(
+        self,
+    ):
         if not self.__to_send.empty():
             self._send_packet(self.__to_send.get())
             logger.debug(f"pack -> {self}")
@@ -308,6 +539,8 @@ class JIMClient:
     def _recive_bytes(self, size: int = JIMPacketConst.MAX_SIZE) -> bytes:
         # try:
         bytes_ = self.__socket.recv(size)
+        if bytes == b"":
+            raise JIMClientDisconnect(self)
         return bytes_
         # except:
         # logger.warning(f"{self} is disconnect")
@@ -321,7 +554,13 @@ class JIMClient:
         return dict_
 
     @jim.logger.logger_func.log
-    def _recive_packet(self, ) -> "JIMPacket|None":
+    def _get_ip(self):
+        return self.__ip
+
+    @jim.logger.logger_func.log
+    def _recive_packet(
+        self,
+    ) -> "JIMPacket|None":
         "only recive. no stack"
         return JIMPacket(from_dict=self._recive_jim_json())
 
@@ -347,16 +586,10 @@ class JIMClient:
             cal._answer(pack=cal, answer=packet, client=self)
             del self.__wait_packet[id_]
 
-    def _push_packet_by(self,
-                        packet: JIMPacket,
-                        name: "str|None" = None,
-                        group: "str|None" = None):
+    def _push_packet_by(
+        self, packet: JIMPacket, name: "str|None" = None, group: "str|None" = None
+    ):
         if self.__status:
-            if group:
-                logger.debug(f"----> G:{group}({self.in_group(group)})  ")
-            elif name:
-                logger.debug(f"----> G:{name}({self.get_name() == name})  ")
-
             if group and self.in_group(group):
                 self.__to_send.put(packet)
                 logger.debug(f"OUT {packet} -> GROUP({group})")
@@ -371,8 +604,7 @@ class JIMClient:
     # @jim.logger.logger_func.log
     def update_status(self):
         try:
-
-            read, write, _ = select((self, ), (self, ), [], 0)
+            read, write, _ = select((self,), (self,), [], 0)
 
             if read:
                 pack = self._recive_packet()
@@ -381,29 +613,30 @@ class JIMClient:
                     id_ = pack.dict_["id"]
                     self.update_wait(pack, id_)
 
-                if pack and pack.is_field(JIMPacketFieldName.ACTION):
-
-                    if pack.is_field_value(JIMPacketFieldName.ACTION,
-                                           JIMAction.MSG):
-                        logger.debug(f"IN {pack.dict_}")
+                if pack and pack.dict_ and pack.is_field(JIMPacketFieldName.ACTION):
+                    if pack.is_field_value(JIMPacketFieldName.ACTION, JIMAction.MSG):
+                        msg = pack.dict_
+                        # logger.debug(f"IN {pack.dict_}")
+                        logger.debug(f"{msg['from']}: {msg['message']}")
 
             if write:
                 self._send_in_stack()
 
         except KeyboardInterrupt:
             exit(0)
-        except:
-            pass
+        except JIMClientDisconnect:
+            exit(0)
 
     def wait(self) -> int:
         return len(self.__wait_packet)
 
     @classmethod
     @jim.logger.logger_func.log
-    def _from_server(cls, socket: socket.socket) -> "JIMClient":
+    def _from_server(cls, socket: socket.socket, addr) -> "JIMClient":
         if not cls.__all_client__:
             cls.__all_client__ = set()
-        client = JIMClient(_socket=socket)
+        client = JIMClient(_socket=socket, _ip=addr)
+
         cls.__all_client__.add(client)
         logger.debug("some connect {client}")
         return client
@@ -412,7 +645,13 @@ class JIMClient:
 if __name__ == "__main__":
     import unittest
 
+    class TESTJIMClientMetaGood(metaclass=ClientVerifier):
+        __socket = SocketProperty()
+
+    class TESTJIMClientMetaBad(metaclass=ClientVerifier):
+        socket = SocketProperty()
+
     class TESTJIMClient(unittest.TestCase):
-        raise NotImplemented
+        pass
 
     unittest.main()
