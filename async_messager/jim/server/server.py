@@ -6,6 +6,7 @@ import logging
 import queue
 import select
 import socket
+from jim.db.db import DATABASE_SERVER_PATH
 
 import jim.logger.logger_server
 from jim.client import JIMClient, RegistarationByName
@@ -23,8 +24,6 @@ from jim.logger.logger_func import log
 from jim.packet.packet import JIMAction, JIMPacket, JIMPacketFieldName, ResponseGroup
 
 logger = logging.getLogger("server")
-
-db = DataBaseServerORM()
 
 
 class ServerVerifier(type):
@@ -83,7 +82,7 @@ class PortProperty:
 
 class JIMServer(metaclass=ServerVerifier):
     port = PortProperty()
-    # db = DataBaseProperty()
+    db: DataBaseServerORM
     __socket: socket.socket
     __clients: set
     __out_event: "queue.SimpleQueue|None"  # for cli or gui
@@ -93,9 +92,11 @@ class JIMServer(metaclass=ServerVerifier):
         self,
         event_in: "queue.SimpleQueue|None" = None,
         event_out: "queue.SimpleQueue|None" = None,
+        database_path: "str|None" = None,
     ) -> None:
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__clients = set()  # ToDo: use JIMClient.__all_client__
+        self.db = DataBaseServerORM(db_pah=database_path or DATABASE_SERVER_PATH)
         if event_in and event_out:
             self.__out_event = event_in
             self.__in_event = event_out
@@ -126,7 +127,7 @@ class JIMServer(metaclass=ServerVerifier):
             except:
                 name = client.get_name()
                 if name:
-                    db.client_active_status(False, by_name=name, force_commit=True)
+                    self.db.client_active_status(False, by_name=name, force_commit=True)
                 clients.remove(client)
                 client.disconnect()
                 logger.error(f"{client} is disconnected.")
@@ -160,8 +161,8 @@ class JIMServer(metaclass=ServerVerifier):
                                 try:
                                     ip = client._get_ip()
                                     # ToDo: add error if ip no exist
-                                    db.add_client(by_name=name)
-                                    db.add_history(
+                                    self.db.add_client(by_name=name)
+                                    self.db.add_history(
                                         addr=ip, by_name=name, force_commit=True
                                     )
                                 except Exception as ex:
@@ -197,7 +198,7 @@ class JIMServer(metaclass=ServerVerifier):
                         elif action == JIMAction.QUIT:
                             name = client.get_name()
                             if name:
-                                db.client_active_status(
+                                self.db.client_active_status(
                                     False, by_name=name, force_commit=True
                                 )
                             client._send_jim_json({})
@@ -258,7 +259,7 @@ class JIMServer(metaclass=ServerVerifier):
                             JIMPacket.gen_answer(400, id_, msg="bad req")
                         )
                         logger.error(f"UNKNOWN {packet}")
-                db.update()
+                self.db.update()
             # ToDo
             # except JIMPacketResponseExeption as resp:
             #     client._send_packet(resp.jim_packet)
@@ -272,7 +273,7 @@ class JIMServer(metaclass=ServerVerifier):
             except Exception as ex:
                 name = client.get_name()
                 if name:
-                    db.client_active_status(False, by_name=name, force_commit=True)
+                    self.db.client_active_status(False, by_name=name, force_commit=True)
                 clients.remove(client)
                 client.disconnect()
                 logger.error(f"{client} is disconnected.")
@@ -313,7 +314,7 @@ class JIMServer(metaclass=ServerVerifier):
                 logger.debug(f"{client} duplicate reg by {name}")
                 return
             client.status.client_type = RegistarationByName(name)
-            contacts = db.get_contacts(by_name=name)
+            contacts = self.db.get_contacts(by_name=name)
             if contacts:
                 contacts = list(map(lambda orm: str(orm.name), contacts))
                 client._send_packet(
@@ -385,7 +386,7 @@ class JIMServer(metaclass=ServerVerifier):
 
         # format db [clients] -> [name..]
         contacts = []
-        db_contacts = db.get_contacts(by_name=login_name)
+        db_contacts = self.db.get_contacts(by_name=login_name)
 
         if db_contacts:
             for db_client in db_contacts:
@@ -452,9 +453,9 @@ class JIMServer(metaclass=ServerVerifier):
             )
             return
 
-        db_self_client = db.get_client(by_name=login_name)
+        db_self_client = self.db.get_client(by_name=login_name)
 
-        db_friend = db.get_client(by_name=friend_name)
+        db_friend = self.db.get_client(by_name=friend_name)
 
         if not db_self_client:
             client._send_packet(JIMPacket.gen_answer(400, to_id=id_))
@@ -544,7 +545,9 @@ class JIMServer(metaclass=ServerVerifier):
                 for client in self.__clients:
                     name = client.get_name()
                     if name:
-                        db.client_active_status(False, by_name=name, force_commit=True)
+                        self.db.client_active_status(
+                            False, by_name=name, force_commit=True
+                        )
                     client._send_packet(JIMPacket.gen_req(JIMAction.QUIT))
                     client.disconnect()
             except KeyboardInterrupt:
